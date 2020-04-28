@@ -6,8 +6,8 @@ using System.Text;
 namespace SwallowNest.Chidori.Tests
 {
 	[TestClass]
-	public class ScheduledActionQueueTest
+	public class TimeActionSchedulerTest
 	{
-		ScheduledActionQueue scheduler;
+		TimeActionScheduler scheduler;
 	}
 }

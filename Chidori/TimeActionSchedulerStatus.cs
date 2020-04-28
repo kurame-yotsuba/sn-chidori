@@ -3,7 +3,7 @@
 	/// <summary>
 	/// TaskQueueの状態を表す列挙型です。
 	/// </summary>
-	public enum ScheduledActionQueueStatus
+	public enum TimeActionSchedulerStatus
 	{
 		/// <summary>
 		/// 停止していることを表します。

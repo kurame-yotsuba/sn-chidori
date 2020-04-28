@@ -4,13 +4,13 @@ using System.Text;
 
 namespace SwallowNest.Chidori
 {
-	public class ScheduledAction
+	public class TimeAction
 	{
 		Action action;
 		public int Id { get; }
 		public string Name { get; }
 
-		internal ScheduledAction(Action action, int id, string name)
+		internal TimeAction(Action action, int id, string name)
 		{
 			this.action = action;
 			Id = id;

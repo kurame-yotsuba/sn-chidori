@@ -9,7 +9,7 @@ namespace SwallowNest.Chidori
 	/// <summary>
 	/// 受け取ったタスクを時間順に実行していくクラスです。
 	/// </summary>
-	public class ScheduledActionQueue
+	public class TimeActionScheduler
 	{
 		#region innner member
 
@@ -21,10 +21,10 @@ namespace SwallowNest.Chidori
 
 		public readonly struct AddResult
 		{
-			public readonly ScheduledAction? Result;
+			public readonly TimeAction? Result;
 			public readonly AddError Error;
 
-			internal AddResult(ScheduledAction? result, AddError error)
+			internal AddResult(TimeAction? result, AddError error)
 			{
 				Result = result;
 				Error = error;
@@ -36,7 +36,7 @@ namespace SwallowNest.Chidori
 		#region private member
 
 		//実行待ちのタスクを時間順で格納する辞書
-		readonly SortedDictionary<DateTime, Queue<ScheduledAction>> scheduler;
+		readonly SortedDictionary<DateTime, Queue<TimeAction>> scheduler;
 
 		//スケジューラへのタスクの同時追加防止用
 		readonly object schedulerSync = new object();
@@ -44,14 +44,14 @@ namespace SwallowNest.Chidori
 		// スケジューラを稼働させるかどうか
 		bool Repeating => Status switch
 		{
-			ScheduledActionQueueStatus.Stop => true,
-			ScheduledActionQueueStatus.Running => true,
-			ScheduledActionQueueStatus.WaitAllEnd when Count > 0 => true,
+			TimeActionSchedulerStatus.Stop => true,
+			TimeActionSchedulerStatus.Running => true,
+			TimeActionSchedulerStatus.WaitAllEnd when Count > 0 => true,
 			_ => false
 		};
 
 		// スケジューラから次のアクションを取り出す
-		ScheduledAction Dequeue()
+		TimeAction Dequeue()
 		{
 			lock (schedulerSync)
 			{
@@ -77,14 +77,14 @@ namespace SwallowNest.Chidori
 		/// <summary>
 		/// スケジューラの稼働状態を表します。
 		/// </summary>
-		public ScheduledActionQueueStatus Status { get; set; }
+		public TimeActionSchedulerStatus Status { get; set; }
 
 		/// <summary>
 		/// コンストラクタ
 		/// </summary>
-		public ScheduledActionQueue()
+		public TimeActionScheduler()
 		{
-			scheduler = new SortedDictionary<DateTime, Queue<ScheduledAction>>();
+			scheduler = new SortedDictionary<DateTime, Queue<TimeAction>>();
 		}
 
 		/// <summary>
@@ -104,7 +104,7 @@ namespace SwallowNest.Chidori
 
 			lock (schedulerSync)
 			{
-				ScheduledAction scheduledAction = new ScheduledAction(action, Count, name);
+				TimeAction scheduledAction = new TimeAction(action, Count, name);
 
 				//指定の時間に既にタスクが入っている場合、そのタスクのあとに追加
 				if (scheduler.ContainsKey(time))
@@ -114,7 +114,7 @@ namespace SwallowNest.Chidori
 				//そうでない場合は新しくキューを作成して追加
 				else
 				{
-					var q = new Queue<ScheduledAction>();
+					var q = new Queue<TimeAction>();
 					q.Enqueue(scheduledAction);
 					scheduler[time] = q;
 				}
@@ -145,11 +145,11 @@ namespace SwallowNest.Chidori
 		/// </summary>
 		public async Task Run()
 		{
-			Status = ScheduledActionQueueStatus.Running;
+			Status = TimeActionSchedulerStatus.Running;
 			while (Repeating)
 			{
 				if (Count == 0
-					|| Status == ScheduledActionQueueStatus.Stop
+					|| Status == TimeActionSchedulerStatus.Stop
 					|| DateTime.Now < PeekTime)
 				{
 					await Task.Delay(1000);
@@ -157,7 +157,7 @@ namespace SwallowNest.Chidori
 				}
 				else
 				{
-					ScheduledAction task = Dequeue();
+					TimeAction task = Dequeue();
 					task.Invoke();
 				}
 			}
