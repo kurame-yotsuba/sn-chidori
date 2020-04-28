@@ -157,8 +157,8 @@ namespace SwallowNest.Chidori
 				}
 				else
 				{
-					TimeAction task = Dequeue();
-					task.Invoke();
+					TimeAction action = Dequeue();
+					action.Invoke();
 				}
 			}
 		}
