@@ -7,13 +7,11 @@ namespace SwallowNest.Chidori
 	public class TimeAction
 	{
 		Action action;
-		public int Id { get; }
 		public string Name { get; }
 
-		internal TimeAction(Action action, int id, string name)
+		public TimeAction(Action action, string name)
 		{
 			this.action = action;
-			Id = id;
 			Name = name;
 		}
 
@@ -38,6 +36,15 @@ namespace SwallowNest.Chidori
 			//{
 			//	SharedLogger.Print($"{name}の実行が終了しました。", LogLevel.INFO);
 			//}
+		}
+
+		/// <summary>
+		/// アクションを更新します。
+		/// </summary>
+		/// <param name="action"></param>
+		public void Update(Action action)
+		{
+			this.action = action;
 		}
 	}
 }
