@@ -276,6 +276,22 @@ namespace SwallowNest.Chidori.Tests
 			scheduler.Select(x => x.Name).OrderBy(x => x).Is(actionNames);
 		}
 
+		[TestMethod]
+		[TestCategory(CategoryCollection)]
+		public void アクションの全削除ができる()
+		{
+			int n = 5;
+			for(int i = 0; i < n; i++)
+			{
+				scheduler.Add(() => { }, After(i), $"{i}");
+			}
+
+			scheduler.Clear();
+
+			scheduler.Count.Is(0);
+			scheduler.Names.Count.Is(0);
+		}
+
 		#endregion
 
 		[TestMethod]

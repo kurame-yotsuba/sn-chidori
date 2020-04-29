@@ -223,6 +223,8 @@ namespace SwallowNest.Chidori
 			}
 		}
 
+		#region Operations of scheduler status
+
 		/// <summary>
 		/// 登録されているタスクを順次実行します。
 		/// </summary>
@@ -249,11 +251,14 @@ namespace SwallowNest.Chidori
 			Clear();
 		}
 
+		#endregion
+
 		public void Clear()
 		{
 			lock (schedulerSync)
 			{
 				scheduler.Clear();
+				names.Clear();
 				Count = 0;
 			}
 		}
