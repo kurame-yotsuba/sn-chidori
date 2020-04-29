@@ -27,6 +27,11 @@ namespace SwallowNest.Chidori
 			TimeIsPast,
 
 			/// <summary>
+			/// 指定された時間間隔が0以下です。
+			/// </summary>
+			IntervalIsNotPositive,
+
+			/// <summary>
 			/// 指定された名前は既に使われています。
 			/// </summary>
 			NameIsUsed,
@@ -53,6 +58,13 @@ namespace SwallowNest.Chidori
 			TimeActionSchedulerStatus.Stop => true,
 			TimeActionSchedulerStatus.Running => true,
 			TimeActionSchedulerStatus.EndWaitAll when Count > 0 => true,
+			_ => false
+		};
+
+		bool IsEnd => Status switch
+		{
+			TimeActionSchedulerStatus.EndWaitAll => true,
+			TimeActionSchedulerStatus.EndImmediately => true,
 			_ => false
 		};
 
@@ -98,6 +110,18 @@ namespace SwallowNest.Chidori
 					}
 				}
 			}
+		}
+
+		Action Append(Action action, TimeSpan interval, string name)
+		{
+			//action終了後に自身を追加する関数をactionの後に実行する
+			return () =>
+			{
+				if (!IsEnd)
+				{
+					Add(action, interval, name);
+				}
+			};
 		}
 
 		#endregion
@@ -217,6 +241,31 @@ namespace SwallowNest.Chidori
 				Count++;
 				return AddError.None;
 			}
+		}
+
+		/// <summary>
+		/// スケジューラに一定間隔で繰り返し実行されるアクションを追加します。
+		/// </summary>
+		/// <param name="action"></param>
+		/// <param name="interval"></param>
+		/// <param name="name"></param>
+		public AddError Add(Action action, TimeSpan interval, string name = "")
+		{
+			if (interval <= TimeSpan.Zero)
+			{
+				return AddError.IntervalIsNotPositive;
+			}
+
+			//action終了後に自身を追加する関数を、追加する
+			action += () =>
+			{
+				if (!IsEnd)
+				{
+					Add(action, interval, name);
+				}
+			};
+
+			return Add(action, DateTime.Now + interval, name);
 		}
 
 		#endregion

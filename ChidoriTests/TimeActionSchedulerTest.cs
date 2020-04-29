@@ -51,6 +51,24 @@ namespace SwallowNest.Chidori.Tests
 
 		[TestMethod]
 		[TestCategory(CategoryAdd)]
+		public void 一定時間で繰り返すアクションの追加ができる()
+		{
+			// 2秒ごとに実行するアクションの追加
+			TimeActionScheduler.AddError result =
+				scheduler.Add(() => output.Add(""), TimeSpan.FromSeconds(2), "sample");
+
+			result.Is(TimeActionScheduler.AddError.None);
+
+			scheduler.Start();
+
+			Wait(4);
+
+			// 4秒待ったから2回実行されているはず
+			output.Count.Is(2);
+		}
+
+		[TestMethod]
+		[TestCategory(CategoryAdd)]
 		public void アクションの追加でnameがnamesに追加される()
 		{
 			string actionName = "sample";
