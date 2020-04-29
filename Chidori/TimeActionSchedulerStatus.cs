@@ -18,11 +18,11 @@
 		/// <summary>
 		/// 現在登録されているタスクを完了し次第終了することを表します。
 		/// </summary>
-		WaitAllEnd,
+		EndWaitAll,
 
 		/// <summary>
 		/// 現在実行中のタスクとそれに連なるタスクを完了し次第終了します。
 		/// </summary>
-		ImmediatelyEnd,
+		EndImmediately,
 	}
 }

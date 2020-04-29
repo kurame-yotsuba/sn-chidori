@@ -189,7 +189,7 @@ namespace SwallowNest.Chidori.Tests
 			var task = scheduler.Start();
 			// スケジューラにあるアクションが終わったら終了
 			scheduler.EndWaitAll();
-			scheduler.Status.Is(TimeActionSchedulerStatus.WaitAllEnd);
+			scheduler.Status.Is(TimeActionSchedulerStatus.EndWaitAll);
 
 			// 指定した秒数＋α待機
 			Task.Delay(1000 * n + 500).Wait();
@@ -221,7 +221,7 @@ namespace SwallowNest.Chidori.Tests
 			var task = scheduler.Start();
 			// スケジューラにあるアクションが終わったら終了
 			scheduler.EndImmediately();
-			scheduler.Status.Is(TimeActionSchedulerStatus.ImmediatelyEnd);
+			scheduler.Status.Is(TimeActionSchedulerStatus.EndImmediately);
 
 			// 少しだけ待機
 			Task.Delay(1000).Wait();

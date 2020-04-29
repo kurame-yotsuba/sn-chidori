@@ -52,7 +52,7 @@ namespace SwallowNest.Chidori
 		{
 			TimeActionSchedulerStatus.Stop => true,
 			TimeActionSchedulerStatus.Running => true,
-			TimeActionSchedulerStatus.WaitAllEnd when Count > 0 => true,
+			TimeActionSchedulerStatus.EndWaitAll when Count > 0 => true,
 			_ => false
 		};
 
@@ -92,7 +92,7 @@ namespace SwallowNest.Chidori
 					TimeAction action = Dequeue();
 					names.Remove(action.Name);
 					if (Status == TimeActionSchedulerStatus.Running
-						|| Status == TimeActionSchedulerStatus.WaitAllEnd)
+						|| Status == TimeActionSchedulerStatus.EndWaitAll)
 					{
 						action.Invoke();
 					}
@@ -240,12 +240,12 @@ namespace SwallowNest.Chidori
 
 		public void EndWaitAll()
 		{
-			Status = TimeActionSchedulerStatus.WaitAllEnd;
+			Status = TimeActionSchedulerStatus.EndWaitAll;
 		}
 
 		public void EndImmediately()
 		{
-			Status = TimeActionSchedulerStatus.ImmediatelyEnd;
+			Status = TimeActionSchedulerStatus.EndImmediately;
 			Clear();
 		}
 
