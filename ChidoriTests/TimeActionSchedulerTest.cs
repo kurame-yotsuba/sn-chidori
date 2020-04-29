@@ -21,6 +21,8 @@ namespace SwallowNest.Chidori.Tests
 
 		DateTime After(int n) => DateTime.Now.AddSeconds(n);
 		string NowString => DateTime.Now.ToLongTimeString();
+		// n sec + α　待機
+		void Wait(int n) => Task.Delay(1000 * n + 500).Wait();
 		
 		[TestInitialize]
 		public void TestInit()
@@ -30,8 +32,6 @@ namespace SwallowNest.Chidori.Tests
 			_names = scheduler.AsDynamic().names;
 			output = new List<string>();
 		}
-
-		
 
 		#region Add functions
 
@@ -135,8 +135,7 @@ namespace SwallowNest.Chidori.Tests
 			// スケジューラの開始
 			var task = scheduler.Start();
 
-			// 指定した秒数＋α待機
-			Task.Delay(1000 * n + 500).Wait();
+			Wait(n);
 
 			// 出力確認
 			output[0].Is(time.ToLongTimeString());
@@ -162,14 +161,16 @@ namespace SwallowNest.Chidori.Tests
 			scheduler.Stop();
 			scheduler.Status.Is(TimeActionSchedulerStatus.Stop);
 
-			// 指定した秒数＋α待機
-			Task.Delay(1000 * n + 500).Wait();
+			Wait(n);
 
 			// 出力されていない
 			output.Count.Is(0);
 
 			// カウントは減っている
 			scheduler.Count.Is(0);
+
+			// タスクは終わっていない
+			task.IsCompleted.IsFalse();
 		}
 
 		[TestMethod]
@@ -191,8 +192,7 @@ namespace SwallowNest.Chidori.Tests
 			scheduler.EndWaitAll();
 			scheduler.Status.Is(TimeActionSchedulerStatus.EndWaitAll);
 
-			// 指定した秒数＋α待機
-			Task.Delay(1000 * n + 500).Wait();
+			Wait(n);
 
 			// 出力されている
 			output.Count.Is(3);
@@ -224,7 +224,7 @@ namespace SwallowNest.Chidori.Tests
 			scheduler.Status.Is(TimeActionSchedulerStatus.EndImmediately);
 
 			// 少しだけ待機
-			Task.Delay(1000).Wait();
+			Wait(1);
 
 			// 出力されていない
 			output.Count.Is(0);
