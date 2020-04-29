@@ -42,6 +42,8 @@ namespace SwallowNest.Chidori
 		// アクション名の辞書
 		readonly Dictionary<string, TimeAction> names;
 
+		Task? execTask;
+
 		// スケジューラへのタスクの同時追加防止用
 		readonly object schedulerSync = new object();
 
@@ -73,6 +75,28 @@ namespace SwallowNest.Chidori
 				}
 
 				return action;
+			}
+		}
+
+		async Task CreateExecTask()
+		{
+			while (Loop)
+			{
+				if (Count == 0 || DateTime.Now < PeekTime)
+				{
+					await Task.Delay(1000);
+					continue;
+				}
+				else
+				{
+					TimeAction action = Dequeue();
+					names.Remove(action.Name);
+					if (Status == TimeActionSchedulerStatus.Running
+						|| Status == TimeActionSchedulerStatus.WaitAllEnd)
+					{
+						action.Invoke();
+					}
+				}
 			}
 		}
 
@@ -125,7 +149,7 @@ namespace SwallowNest.Chidori
 		/// <summary>
 		/// スケジューラの稼働状態を表します。
 		/// </summary>
-		public TimeActionSchedulerStatus Status { get; set; }
+		public TimeActionSchedulerStatus Status { get; private set; }
 
 		/// <summary>
 		/// 名前に紐付くアクションを返します。
@@ -144,21 +168,22 @@ namespace SwallowNest.Chidori
 		/// <param name="time"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		public AddError Add(Action action, DateTime time, string name)
+		public AddError Add(Action action, DateTime time, string? name = null)
 		{
 			// 引数チェック
 			if (time < DateTime.Now)
 			{
 				return AddError.TimeIsPast;
 			}
-			if (names.ContainsKey(name))
+
+			if (name is { } && names.ContainsKey(name))
 			{
 				return AddError.NameIsUsed;
 			}
 
 			lock (schedulerSync)
 			{
-				TimeAction scheduledAction = new TimeAction(action, name);
+				TimeAction scheduledAction = new TimeAction(action, name ?? "");
 
 				//指定の時間に既にタスクが入っている場合、そのタスクのあとに追加
 				if (scheduler.ContainsKey(time))
@@ -172,7 +197,10 @@ namespace SwallowNest.Chidori
 					q.Enqueue(scheduledAction);
 					scheduler[time] = q;
 				}
-				names.Add(name, scheduledAction);
+				if(name is { })
+				{
+					names.Add(name, scheduledAction);
+				}
 				Count++;
 				return AddError.None;
 			}
@@ -189,7 +217,7 @@ namespace SwallowNest.Chidori
 			{
 				lock (schedulerSync)
 				{
-					var (time, scheduledTasks) = scheduler.First();
+					var (time, _) = scheduler.First();
 					return time;
 				}
 			}
@@ -198,25 +226,21 @@ namespace SwallowNest.Chidori
 		/// <summary>
 		/// 登録されているタスクを順次実行します。
 		/// </summary>
-		public async Task Run()
+		public Task Start()
 		{
 			Status = TimeActionSchedulerStatus.Running;
-			while (Loop)
-			{
-				if (Count == 0
-					|| Status == TimeActionSchedulerStatus.Stop
-					|| DateTime.Now < PeekTime)
-				{
-					await Task.Delay(1000);
-					continue;
-				}
-				else
-				{
-					TimeAction action = Dequeue();
-					names.Remove(action.Name);
-					action.Invoke();
-				}
-			}
+			execTask ??= CreateExecTask();
+			return execTask;
+		}
+
+		public void Stop()
+		{
+			Status = TimeActionSchedulerStatus.Stop;
+		}
+
+		public void EndWaitAll()
+		{
+			Status = TimeActionSchedulerStatus.WaitAllEnd;
 		}
 	}
 }
