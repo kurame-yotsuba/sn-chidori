@@ -199,7 +199,7 @@ namespace SwallowNest.Chidori
 		#region Add functions
 
 		/// <summary>
-		/// スケジューラに関数を追加します。
+		/// スケジューラに指定した時刻に実行されるアクションを追加します。
 		/// </summary>
 		/// <param name="action"></param>
 		/// <param name="time"></param>
@@ -257,6 +257,15 @@ namespace SwallowNest.Chidori
 			return Add(action, DateTime.Now + interval, interval, name);
 		}
 
+		/// <summary>
+		/// スケジューラに指定した時刻に実行され、
+		/// その後は一定間隔で繰り返し実行されるアクションを追加します。
+		/// </summary>
+		/// <param name="action"></param>
+		/// <param name="time">最初にアクションが実行される時刻</param>
+		/// <param name="interval">アクションが実行される間隔</param>
+		/// <param name="name"></param>
+		/// <returns></returns>
 		public AddError Add(
 			Action action,
 			DateTime time,
