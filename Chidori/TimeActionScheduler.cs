@@ -110,6 +110,7 @@ namespace SwallowNest.Chidori
 					}
 				}
 			}
+			execTask = null;
 		}
 
 		Action Append(Action action, TimeSpan interval, string? name)

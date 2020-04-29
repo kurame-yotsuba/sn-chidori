@@ -17,6 +17,7 @@ namespace SwallowNest.Chidori.Tests
 		TimeActionScheduler scheduler;
 		SortedDictionary<DateTime, Queue<TimeAction>> _scheduler;
 		Dictionary<string, TimeAction> _names;
+
 		List<string> output;
 
 		DateTime After(int n) => DateTime.Now.AddSeconds(n);
@@ -241,6 +242,10 @@ namespace SwallowNest.Chidori.Tests
 
 			// タスクは終了している
 			task.IsCompleted.IsTrue();
+
+			// execTask変数はnullになっている
+			Task execTask = scheduler.AsDynamic().execTask;
+			execTask.IsNull();
 		}
 
 		[TestMethod]
@@ -273,6 +278,10 @@ namespace SwallowNest.Chidori.Tests
 
 			// タスクは終了している
 			task.IsCompleted.IsTrue();
+
+			// execTask変数はnullになっている
+			Task execTask = scheduler.AsDynamic().execTask;
+			execTask.IsNull();
 		}
 
 
