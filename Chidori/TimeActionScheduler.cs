@@ -123,6 +123,19 @@ namespace SwallowNest.Chidori
 		/// </summary>
 		public int Count { get; private set; }
 
+		/// <summary>
+		/// スケジューラに登録されているアクションを削除します。
+		/// </summary>
+		public void Clear()
+		{
+			lock (schedulerSync)
+			{
+				scheduler.Clear();
+				names.Clear();
+				Count = 0;
+			}
+		}
+
 		#region Implements of IEnumerable<T>
 
 		/// <summary>
@@ -252,15 +265,5 @@ namespace SwallowNest.Chidori
 		}
 
 		#endregion
-
-		public void Clear()
-		{
-			lock (schedulerSync)
-			{
-				scheduler.Clear();
-				names.Clear();
-				Count = 0;
-			}
-		}
 	}
 }
