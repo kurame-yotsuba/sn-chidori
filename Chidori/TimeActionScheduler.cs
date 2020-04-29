@@ -112,9 +112,9 @@ namespace SwallowNest.Chidori
 			}
 		}
 
-		Action Append(Action action, TimeSpan interval, string name)
+		Action Append(Action action, TimeSpan interval, string? name)
 		{
-			//action終了後に自身を追加する関数をactionの後に実行する
+			//action終了後に自信を追加する関数をactionの後に実行する
 			return () =>
 			{
 				if (!IsEnd)
@@ -249,24 +249,32 @@ namespace SwallowNest.Chidori
 		/// <param name="action"></param>
 		/// <param name="interval"></param>
 		/// <param name="name"></param>
-		public AddError Add(Action action, TimeSpan interval, string name = "")
+		public AddError Add(
+			Action action,
+			TimeSpan interval,
+			string? name = null)
 		{
+			return Add(action, DateTime.Now + interval, interval, name);
+		}
+
+		public AddError Add(
+			Action action,
+			DateTime time,
+			TimeSpan interval,
+			string? name = null)
+		{
+			// 引数チェック
 			if (interval <= TimeSpan.Zero)
 			{
 				return AddError.IntervalIsNotPositive;
 			}
 
-			//action終了後に自身を追加する関数を、追加する
-			action += () =>
-			{
-				if (!IsEnd)
-				{
-					Add(action, interval, name);
-				}
-			};
+			action += Append(action, interval, name);
 
-			return Add(action, DateTime.Now + interval, name);
+			return Add(action, time, name);
 		}
+
+		
 
 		#endregion
 

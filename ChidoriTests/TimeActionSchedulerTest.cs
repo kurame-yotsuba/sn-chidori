@@ -22,7 +22,7 @@ namespace SwallowNest.Chidori.Tests
 		DateTime After(int n) => DateTime.Now.AddSeconds(n);
 		string NowString => DateTime.Now.ToLongTimeString();
 		// n sec + α　待機
-		void Wait(int n) => Task.Delay(1000 * n + 500).Wait();
+		void Wait(int n) => Task.Delay(1000 * n + 100).Wait();
 		
 		[TestInitialize]
 		public void TestInit()
@@ -64,6 +64,27 @@ namespace SwallowNest.Chidori.Tests
 			Wait(4);
 
 			// 4秒待ったから2回実行されているはず
+			output.Count.Is(2);
+		}
+
+		[TestMethod]
+		[TestCategory(CategoryAdd)]
+		public void 最初の時刻を指定したらその後は一定時間で繰り返す追加()
+		{
+			// 1秒後に実行し、その後は3秒ごとに実行するアクションの追加
+			TimeActionScheduler.AddError result =
+				scheduler.Add(() => output.Add(""), After(1), TimeSpan.FromSeconds(3), "sample");
+
+			result.Is(TimeActionScheduler.AddError.None);
+
+			scheduler.Start();
+
+			// 1秒待ったから1つ増えてるはず
+			Wait(1);
+			output.Count.Is(1);
+
+			// 次に3秒待ったから1つ増えてるはず
+			Wait(3);
 			output.Count.Is(2);
 		}
 
