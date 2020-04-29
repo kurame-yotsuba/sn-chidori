@@ -204,6 +204,38 @@ namespace SwallowNest.Chidori.Tests
 			task.IsCompleted.IsTrue();
 		}
 
+		[TestMethod]
+		[TestCategory(CategoryExec)]
+		public void スケジューラのアクションを待たずに終了できる()
+		{
+			// この秒数後に実行する
+			int n = 5;
+			DateTime time = After(n);
+
+			// 実行時の時間を記録するアクションの追加
+			scheduler.Add(() => output.Add(NowString), time);
+			scheduler.Add(() => output.Add(NowString), time);
+			scheduler.Add(() => output.Add(NowString), time);
+
+			// スケジューラの開始
+			var task = scheduler.Start();
+			// スケジューラにあるアクションが終わったら終了
+			scheduler.EndImmediately();
+			scheduler.Status.Is(TimeActionSchedulerStatus.ImmediatelyEnd);
+
+			// 少しだけ待機
+			Task.Delay(1000).Wait();
+
+			// 出力されていない
+			output.Count.Is(0);
+
+			// カウントは減っている
+			scheduler.Count.Is(0);
+
+			// タスクは終了している
+			task.IsCompleted.IsTrue();
+		}
+
 
 		#endregion
 

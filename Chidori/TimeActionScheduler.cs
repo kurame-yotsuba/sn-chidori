@@ -242,5 +242,20 @@ namespace SwallowNest.Chidori
 		{
 			Status = TimeActionSchedulerStatus.WaitAllEnd;
 		}
+
+		public void EndImmediately()
+		{
+			Status = TimeActionSchedulerStatus.ImmediatelyEnd;
+			Clear();
+		}
+
+		public void Clear()
+		{
+			lock (schedulerSync)
+			{
+				scheduler.Clear();
+				Count = 0;
+			}
+		}
 	}
 }
