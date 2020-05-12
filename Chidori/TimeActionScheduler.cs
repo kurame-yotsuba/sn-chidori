@@ -14,11 +14,16 @@ namespace SwallowNest.Chidori
 	/// </summary>
 	public class TimeActionScheduler : IEnumerable<TimeAction>
 	{
-		#region private member
+		#region error messages
 
 		static readonly string timePastErrorMessage = "指定された時刻が過去です。";
 		static readonly string intervalMinimumErrorMessage = $"時間間隔は{MinimumInterval.TotalSeconds}秒以上でなければなりません。";
 		static readonly string nameUsedErrorMessage = "指定された名前は既に使われています。";
+
+		#endregion
+
+		#region private member
+
 
 		// 実行待ちのタスクを時間順で格納する辞書
 		readonly SortedDictionary<DateTime, Queue<TimeAction>> scheduler;
@@ -30,6 +35,8 @@ namespace SwallowNest.Chidori
 
 		// スケジューラへのタスクの同時追加防止用
 		readonly object schedulerSync = new object();
+
+		#region conditions
 
 		// スケジューラを稼働させるかどうか
 		bool Loop => Status switch
@@ -53,6 +60,10 @@ namespace SwallowNest.Chidori
 			TimeActionSchedulerStatus.Stop => true,
 			_ => false
 		};
+
+		#endregion
+
+
 
 		// スケジューラから次のアクションを取り出す
 		TimeAction Dequeue()
@@ -162,6 +173,14 @@ namespace SwallowNest.Chidori
 			}
 		}
 
+		/// <summary>
+		/// 名前に紐付くアクションを返します。
+		/// アクションが見つからなかった場合、nullを返します。
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public TimeAction? this[string name] => names.ContainsKey(name) ? names[name] : null;
+
 		#region Implements of IEnumerable<T>
 
 		/// <summary>
@@ -190,13 +209,7 @@ namespace SwallowNest.Chidori
 		/// </summary>
 		public TimeActionSchedulerStatus Status { get; private set; }
 
-		/// <summary>
-		/// 名前に紐付くアクションを返します。
-		/// アクションが見つからなかった場合、nullを返します。
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public TimeAction? this[string name] => names.ContainsKey(name) ? names[name] : null;
+		
 
 		#region Add functions
 
