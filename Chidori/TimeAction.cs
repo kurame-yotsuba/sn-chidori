@@ -7,13 +7,36 @@ namespace SwallowNest.Chidori
 	public class TimeAction
 	{
 		Action action;
-		public string Name { get; }
+		public DateTime ExecTime { get; internal set; }
+		public TimeSpan Interval { get; internal set; }
+		public string? Name { get; }
 
-		public TimeAction(Action action, string name)
+		#region constructor
+
+		private TimeAction(Action action, string? name = null)
 		{
 			this.action = action;
 			Name = name;
 		}
+
+		internal TimeAction(Action action, DateTime execTime, string? name = null): this(action, name)
+		{
+			ExecTime = execTime;
+		}
+
+		internal TimeAction(Action action, TimeSpan interval, string? name = null): this(action, name)
+		{
+			ExecTime = DateTime.Now + interval;
+			Interval = interval;
+		}
+
+		internal TimeAction(Action action, DateTime execTime, TimeSpan interval, string? name = null): this(action, name)
+		{
+			ExecTime = execTime;
+			Interval = interval;
+		}
+
+		#endregion
 
 		internal void Invoke()
 		{

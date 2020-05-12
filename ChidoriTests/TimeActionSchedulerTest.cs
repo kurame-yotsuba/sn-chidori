@@ -23,7 +23,7 @@ namespace SwallowNest.Chidori.Tests
 		DateTime After(int n) => DateTime.Now.AddSeconds(n);
 		string NowString => DateTime.Now.ToLongTimeString();
 		// n sec + α　待機
-		void Wait(int n) => Task.Delay(1000 * n + 100).Wait();
+		void Wait(int second) => Task.Delay(1000 * second + 100).Wait();
 		
 		[TestInitialize]
 		public void TestInit()
@@ -44,9 +44,8 @@ namespace SwallowNest.Chidori.Tests
 			// schedulerのカウントを見て確認
 			_scheduler.Count.Is(0);
 
-			TimeActionScheduler.AddError result = scheduler.Add(() => { }, After(1));
+			scheduler.Add(() => { }, After(1));
 
-			result.Is(TimeActionScheduler.AddError.None);
 			_scheduler.Count.Is(1);
 		}
 
@@ -55,10 +54,7 @@ namespace SwallowNest.Chidori.Tests
 		public void 一定時間で繰り返すアクションの追加ができる()
 		{
 			// 2秒ごとに実行するアクションの追加
-			TimeActionScheduler.AddError result =
-				scheduler.Add(() => output.Add(""), TimeSpan.FromSeconds(2), "sample");
-
-			result.Is(TimeActionScheduler.AddError.None);
+			scheduler.Add(() => output.Add(""), TimeSpan.FromSeconds(2), "sample");
 
 			scheduler.Start();
 
@@ -73,10 +69,7 @@ namespace SwallowNest.Chidori.Tests
 		public void 最初の時刻を指定したらその後は一定時間で繰り返す追加()
 		{
 			// 1秒後に実行し、その後は3秒ごとに実行するアクションの追加
-			TimeActionScheduler.AddError result =
-				scheduler.Add(() => output.Add(""), After(1), TimeSpan.FromSeconds(3), "sample");
-
-			result.Is(TimeActionScheduler.AddError.None);
+			scheduler.Add(() => output.Add(""), After(1), TimeSpan.FromSeconds(3), "sample");
 
 			scheduler.Start();
 
@@ -108,11 +101,12 @@ namespace SwallowNest.Chidori.Tests
 		{
 			scheduler.Count.Is(0);
 			scheduler.Names.Count.Is(0);
-			TimeActionScheduler.AddError result = 
+
+			AssertEx.Throws<ArgumentOutOfRangeException>(() =>
+			{
 				scheduler.Add(() => { }, DateTime.Now.AddSeconds(-1));
-
-			result.Is(TimeActionScheduler.AddError.TimeIsPast);
-
+			});
+			
 			scheduler.Count.Is(0);
 			scheduler.Names.Count.Is(0);
 		}
@@ -126,10 +120,11 @@ namespace SwallowNest.Chidori.Tests
 			scheduler.Count.Is(1);
 			scheduler.Names.Count.Is(1);
 
-			TimeActionScheduler.AddError result =
+			AssertEx.Throws<ArgumentOutOfRangeException>(() =>
+			{
 				scheduler.Add(() => { }, After(1), "");
+			});
 
-			result.Is(TimeActionScheduler.AddError.NameIsUsed);
 			scheduler.Count.Is(1);
 			scheduler.Names.Count.Is(1);
 		}
@@ -175,7 +170,7 @@ namespace SwallowNest.Chidori.Tests
 			// スケジューラの開始
 			var task = scheduler.Start();
 
-			Wait(n);
+			Wait(n + 1);
 
 			// 出力確認
 			output[0].Is(time.ToLongTimeString());
@@ -312,7 +307,67 @@ namespace SwallowNest.Chidori.Tests
 			 * むしろそういうのって実行条件みたいなのをアクションに個別に付ければよいのでは。
 			 * それでよければStopも消していいことになる。
 			 * あとはAppendを分ければ別にStopあってもできそうではあるけど。
+			 * 
+			 * 5/11追記
+			 * A. 過去のアクションは実行しない。
+			 * B. 繰り返しアクションと時刻指定繰り返しアクションの追加はする。
+			 * C. 繰り返しアクションの基準は現在時刻。
+			 * 時刻指定繰り返しアクションの基準は指定時刻。
+			 * 
 			 */
+		}
+
+		[TestMethod]
+		[TestCategory(CategoryExec)]
+		public void スタート時点で過去のアクションは実行しない()
+		{
+			scheduler.Add(() => output.Add(""), After(1));
+
+			Wait(2);
+
+			scheduler.Start();
+
+			// 出力されていない
+			output.Count.Is(0, "出力のカウント");
+
+			// スケジューラのカウントは減っている
+			scheduler.Count.Is(0, "スケジューラのカウント");
+		}
+
+		[TestMethod]
+		[TestCategory(CategoryExec)]
+		public void スタート時点で過去の繰り返しアクションは過去の時刻基準で再度追加()
+		{
+			scheduler.Add(() => output.Add(NowString), TimeSpan.FromSeconds(2));
+
+			Wait(3);
+
+			output.Count.Is(0, "スタート直前の出力のカウント");
+			scheduler.Start();
+			output.Count.Is(0, "スタート直後の出力のカウント");
+
+			Wait(2);
+
+			output.Count.Is(1, "待機後の出力のカウント");
+			scheduler.Count.Is(1, "スケジューラのカウント");
+		}
+
+		[TestMethod]
+		[TestCategory(CategoryExec)]
+		public void スタート時点で過去の時刻指定繰り返しアクションは指定時刻基準で再度追加()
+		{
+			scheduler.Add(() => output.Add(NowString), After(2), TimeSpan.FromSeconds(3));
+
+			Wait(3);
+
+			output.Count.Is(0, "スタート直前の出力のカウント");
+			scheduler.Start();
+			output.Count.Is(0, "スタート直後の出力のカウント");
+
+			Wait(2);
+
+			output.Count.Is(1, "待機後の出力のカウント");
+			scheduler.Count.Is(1, "スケジューラのカウント");
 		}
 
 		#endregion
@@ -359,11 +414,12 @@ namespace SwallowNest.Chidori.Tests
 		public void アクションの全削除ができる()
 		{
 			int n = 5;
-			for(int i = 0; i < n; i++)
+			for(int i = 1; i <= n; i++)
 			{
 				scheduler.Add(() => { }, After(i), $"{i}");
 			}
 
+			scheduler.Count.Is(n);
 			scheduler.Clear();
 
 			scheduler.Count.Is(0);

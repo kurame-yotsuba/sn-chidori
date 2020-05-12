@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,34 +14,11 @@ namespace SwallowNest.Chidori
 	/// </summary>
 	public class TimeActionScheduler : IEnumerable<TimeAction>
 	{
-		#region innner member
-
-		public enum AddError
-		{
-			/// <summary>
-			/// エラーはありません。
-			/// </summary>
-			None,
-
-			/// <summary>
-			/// 指定された時刻が過去です。
-			/// </summary>
-			TimeIsPast,
-
-			/// <summary>
-			/// 指定された時間間隔が0以下です。
-			/// </summary>
-			IntervalIsNotPositive,
-
-			/// <summary>
-			/// 指定された名前は既に使われています。
-			/// </summary>
-			NameIsUsed,
-		}
-
-		#endregion
-
 		#region private member
+
+		static readonly string timePastErrorMessage = "指定された時刻が過去です。";
+		static readonly string intervalMinimumErrorMessage = $"時間間隔は{MinimumInterval.TotalSeconds}秒以上でなければなりません。";
+		static readonly string nameUsedErrorMessage = "指定された名前は既に使われています。";
 
 		// 実行待ちのタスクを時間順で格納する辞書
 		readonly SortedDictionary<DateTime, Queue<TimeAction>> scheduler;
@@ -61,10 +40,17 @@ namespace SwallowNest.Chidori
 			_ => false
 		};
 
-		bool IsEnd => Status switch
+		bool Execution => Status switch
 		{
+			TimeActionSchedulerStatus.Running => true,
 			TimeActionSchedulerStatus.EndWaitAll => true,
-			TimeActionSchedulerStatus.EndImmediately => true,
+			_ => false
+		};
+
+		bool Appendition => Status switch
+		{
+			TimeActionSchedulerStatus.Running => true,
+			TimeActionSchedulerStatus.Stop => true,
 			_ => false
 		};
 
@@ -101,31 +87,46 @@ namespace SwallowNest.Chidori
 				}
 				else
 				{
-					TimeAction action = Dequeue();
-					names.Remove(action.Name);
-					if (Status == TimeActionSchedulerStatus.Running
-						|| Status == TimeActionSchedulerStatus.EndWaitAll)
+					TimeAction timeAction = Dequeue();
+					if(timeAction.Name is { })
 					{
-						action.Invoke();
+						names.Remove(timeAction.Name);
+					}
+					if (Execution)
+					{
+						timeAction.Invoke();
+					}
+					if (Appendition && timeAction.Interval != default)
+					{
+						timeAction.ExecTime += timeAction.Interval;
+						Add(timeAction);
 					}
 				}
 			}
 			execTask = null;
 		}
 
-		Action Append(Action action, TimeSpan interval, string? name)
+		void Reflesh()
 		{
-			//action終了後に自信を追加する関数をactionの後に実行する
-			return () =>
+			while (Count > 0 && PeekTime < DateTime.Now)
 			{
-				if (!IsEnd)
+				TimeAction timeAction = Dequeue();
+				if (timeAction.Name is { })
 				{
-					Add(action, interval, name);
+					names.Remove(timeAction.Name);
 				}
-			};
+				if(Appendition && timeAction.Interval != default)
+				{
+					timeAction.ExecTime += timeAction.Interval;
+					Add(timeAction);
+				}
+			}
 		}
 
 		#endregion
+
+		public static readonly TimeSpan MinimumInterval = TimeSpan.FromSeconds(1);
+
 
 		/// <summary>
 		/// コンストラクタ
@@ -199,49 +200,55 @@ namespace SwallowNest.Chidori
 
 		#region Add functions
 
-		/// <summary>
-		/// スケジューラに指定した時刻に実行されるアクションを追加します。
-		/// </summary>
-		/// <param name="action"></param>
-		/// <param name="time"></param>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public AddError Add(Action action, DateTime time, string? name = null)
+		void Add(TimeAction timeAction)
 		{
-			// 引数チェック
-			if (time < DateTime.Now)
-			{
-				return AddError.TimeIsPast;
-			}
-
-			if (name is { } && names.ContainsKey(name))
-			{
-				return AddError.NameIsUsed;
-			}
-
+			var (time, name) = (timeAction.ExecTime, timeAction.Name);
 			lock (schedulerSync)
 			{
-				TimeAction scheduledAction = new TimeAction(action, name ?? "");
-
 				//指定の時間に既にタスクが入っている場合、そのタスクのあとに追加
 				if (scheduler.ContainsKey(time))
 				{
-					scheduler[time].Enqueue(scheduledAction);
+					scheduler[time].Enqueue(timeAction);
 				}
 				//そうでない場合は新しくキューを作成して追加
 				else
 				{
 					var q = new Queue<TimeAction>();
-					q.Enqueue(scheduledAction);
+					q.Enqueue(timeAction);
 					scheduler[time] = q;
 				}
-				if(name is { })
+				if (name is { })
 				{
-					names.Add(name, scheduledAction);
+					names.Add(name, timeAction);
 				}
 				Count++;
-				return AddError.None;
 			}
+		}
+
+		/// <summary>
+		/// スケジューラに指定した時刻に実行されるアクションを追加します。
+		/// </summary>
+		/// <param name="action"></param>
+		/// <param name="execTime"></param>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public void Add(Action action, DateTime execTime, string? name = null)
+		{
+			// 時刻が過去を指定されていないかチェック
+			if (execTime < DateTime.Now)
+			{
+				throw new ArgumentOutOfRangeException(nameof(execTime), timePastErrorMessage);
+			}
+
+			// 名前の重複チェック
+			if (name is { } && names.ContainsKey(name))
+			{
+				throw new ArgumentOutOfRangeException(nameof(name), nameUsedErrorMessage);
+			}
+
+			TimeAction timeAction = new TimeAction(action, execTime, name);
+
+			Add(timeAction);
 		}
 
 		/// <summary>
@@ -250,12 +257,9 @@ namespace SwallowNest.Chidori
 		/// <param name="action"></param>
 		/// <param name="interval"></param>
 		/// <param name="name"></param>
-		public AddError Add(
-			Action action,
-			TimeSpan interval,
-			string? name = null)
+		public void Add(Action action, TimeSpan interval, string? name = null)
 		{
-			return Add(action, DateTime.Now + interval, interval, name);
+			Add(action, DateTime.Now + interval, interval, name);
 		}
 
 		/// <summary>
@@ -263,25 +267,36 @@ namespace SwallowNest.Chidori
 		/// その後は一定間隔で繰り返し実行されるアクションを追加します。
 		/// </summary>
 		/// <param name="action"></param>
-		/// <param name="time">最初にアクションが実行される時刻</param>
+		/// <param name="execTime">最初にアクションが実行される時刻</param>
 		/// <param name="interval">アクションが実行される間隔</param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		public AddError Add(
+		public void Add(
 			Action action,
-			DateTime time,
+			DateTime execTime,
 			TimeSpan interval,
 			string? name = null)
 		{
-			// 引数チェック
-			if (interval <= TimeSpan.Zero)
+			// 時刻が過去を指定されていないかチェック
+			if (execTime < DateTime.Now)
 			{
-				return AddError.IntervalIsNotPositive;
+				throw new ArgumentOutOfRangeException(nameof(execTime), timePastErrorMessage);
 			}
 
-			action += Append(action, interval, name);
+			// 繰り返し間隔が短すぎないかチェック
+			if (interval < MinimumInterval)
+			{
+				throw new ArgumentOutOfRangeException(nameof(interval), intervalMinimumErrorMessage);
+			}
 
-			return Add(action, time, name);
+			// 名前の重複チェック
+			if (name is { } && names.ContainsKey(name))
+			{
+				throw new ArgumentOutOfRangeException(nameof(name), nameUsedErrorMessage);
+			}
+
+			TimeAction timeAction = new TimeAction(action, execTime, interval, name);
+			Add(timeAction);
 		}
 
 		
@@ -311,6 +326,7 @@ namespace SwallowNest.Chidori
 		public Task Start()
 		{
 			Status = TimeActionSchedulerStatus.Running;
+			Reflesh();
 			execTask ??= CreateExecTask();
 			return execTask;
 		}
