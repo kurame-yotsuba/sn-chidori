@@ -7,30 +7,65 @@ namespace SwallowNest.Chidori
 	public class TimeAction
 	{
 		Action action;
+
+		/// <summary>
+		/// アクションが実行される時刻
+		/// </summary>
 		public DateTime ExecTime { get; internal set; }
+
+		/// <summary>
+		/// アクションの繰り返し間隔
+		/// </summary>
 		public TimeSpan Interval { get; internal set; }
+
+		/// <summary>
+		/// スケジューラから取得する際のアクション名
+		/// </summary>
 		public string? Name { get; }
+
+		/// <summary>
+		/// アクションの実行条件。
+		/// nullの場合は実行されます。
+		/// </summary>
+		public Func<bool>? CanExecute { get; }
 
 		#region constructor
 
-		private TimeAction(Action action, string? name = null)
+		private TimeAction(Action action, string? name = null, Func<bool>? canExecute = null)
 		{
 			this.action = action;
 			Name = name;
+			CanExecute = canExecute;
 		}
 
-		internal TimeAction(Action action, DateTime execTime, string? name = null): this(action, name)
+		internal TimeAction(
+			Action action,
+			DateTime execTime,
+			string? name = null,
+			Func<bool>? canExecute = null
+			) : this(action, name, canExecute)
 		{
 			ExecTime = execTime;
 		}
 
-		internal TimeAction(Action action, TimeSpan interval, string? name = null): this(action, name)
+		internal TimeAction(
+			Action action,
+			TimeSpan interval,
+			string? name = null,
+			Func<bool>? canExecute = null
+			) : this(action, name, canExecute)
 		{
 			ExecTime = DateTime.Now + interval;
 			Interval = interval;
 		}
 
-		internal TimeAction(Action action, DateTime execTime, TimeSpan interval, string? name = null): this(action, name)
+		internal TimeAction(
+			Action action,
+			DateTime execTime,
+			TimeSpan interval,
+			string? name = null,
+			Func<bool>? canExecute = null
+			) : this(action, name, canExecute)
 		{
 			ExecTime = execTime;
 			Interval = interval;
@@ -40,13 +75,9 @@ namespace SwallowNest.Chidori
 
 		internal void Invoke()
 		{
-			try
+			if (CanExecute?.Invoke() ?? true)
 			{
 				action();
-			}
-			catch (Exception e)
-			{
-				throw e;
 			}
 		}
 

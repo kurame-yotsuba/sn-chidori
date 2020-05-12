@@ -332,6 +332,26 @@ namespace SwallowNest.Chidori.Tests
 			scheduler.Count.Is(1, "スケジューラのカウント");
 		}
 
+		[TestMethod]
+		[TestCategory(CategoryExec)]
+		public void TimeActionに実行条件を指定できる()
+		{
+			bool execute = false;
+			scheduler.Add(() => output.Add(NowString), TimeSpan.FromSeconds(2), canExecute: () => execute);
+			scheduler.Start();
+
+			scheduler.Count.Is(1);
+
+			Wait(2);
+
+			output.Count.Is(0, "実行条件がfalseを返すので出力されない。");
+
+			execute = true;
+
+			Wait(2);
+			output.Count.Is(1, "実行条件がtrueを返すので出力される。");
+		}
+
 		#endregion
 
 		#region Collection functions

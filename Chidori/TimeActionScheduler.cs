@@ -245,7 +245,7 @@ namespace SwallowNest.Chidori
 		/// <param name="execTime"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		public void Add(Action action, DateTime execTime, string? name = null)
+		public void Add(Action action, DateTime execTime, string? name = null, Func<bool>? canExecute = null)
 		{
 			// 時刻が過去を指定されていないかチェック
 			if (execTime < DateTime.Now)
@@ -259,7 +259,7 @@ namespace SwallowNest.Chidori
 				throw new ArgumentOutOfRangeException(nameof(name), nameUsedErrorMessage);
 			}
 
-			TimeAction timeAction = new TimeAction(action, execTime, name);
+			TimeAction timeAction = new TimeAction(action, execTime, name, canExecute);
 
 			Add(timeAction);
 		}
@@ -270,9 +270,9 @@ namespace SwallowNest.Chidori
 		/// <param name="action"></param>
 		/// <param name="interval"></param>
 		/// <param name="name"></param>
-		public void Add(Action action, TimeSpan interval, string? name = null)
+		public void Add(Action action, TimeSpan interval, string? name = null, Func<bool>? canExecute = null)
 		{
-			Add(action, DateTime.Now + interval, interval, name);
+			Add(action, DateTime.Now + interval, interval, name, canExecute);
 		}
 
 		/// <summary>
@@ -288,7 +288,8 @@ namespace SwallowNest.Chidori
 			Action action,
 			DateTime execTime,
 			TimeSpan interval,
-			string? name = null)
+			string? name = null,
+			Func<bool>? canExecute = null)
 		{
 			// 時刻が過去を指定されていないかチェック
 			if (execTime < DateTime.Now)
@@ -308,7 +309,7 @@ namespace SwallowNest.Chidori
 				throw new ArgumentOutOfRangeException(nameof(name), nameUsedErrorMessage);
 			}
 
-			TimeAction timeAction = new TimeAction(action, execTime, interval, name);
+			TimeAction timeAction = new TimeAction(action, execTime, interval, name, canExecute);
 			Add(timeAction);
 		}
 
