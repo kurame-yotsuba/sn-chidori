@@ -314,7 +314,7 @@ namespace SwallowNest.Chidori
 		#region Operations of scheduler status
 
 		/// <summary>
-		/// 登録されているタスクを順次実行します。
+		/// 登録されているアクションを順次実行します。
 		/// </summary>
 		public Task Start()
 		{
@@ -324,16 +324,27 @@ namespace SwallowNest.Chidori
 			return execTask;
 		}
 
+		/// <summary>
+		/// アクションの実行を停止します。
+		/// </summary>
 		public void Stop()
 		{
 			Status = TimeActionSchedulerStatus.Stop;
 		}
 
+		/// <summary>
+		/// 現在登録されているアクションを実行したのち、
+		/// スケジューラを終了します。
+		/// </summary>
 		public void EndWaitAll()
 		{
 			Status = TimeActionSchedulerStatus.EndWaitAll;
 		}
 
+		/// <summary>
+		/// 現在登録されているアクションをすべて削除し、
+		/// ただちにスケジューラを終了します。
+		/// </summary>
 		public void EndImmediately()
 		{
 			Status = TimeActionSchedulerStatus.EndImmediately;
