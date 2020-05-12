@@ -12,13 +12,18 @@ namespace SwallowNest.Chidori
 	/// <summary>
 	/// 受け取ったタスクを時間順に実行していくクラスです。
 	/// </summary>
-	public class TimeActionScheduler : IEnumerable<TimeAction>
+	public class TimeActionScheduler
 	{
-		#region error messages
+		#region static member
 
 		static readonly string timePastErrorMessage = "指定された時刻が過去です。";
 		static readonly string intervalMinimumErrorMessage = $"時間間隔は{MinimumInterval.TotalSeconds}秒以上でなければなりません。";
 		static readonly string nameUsedErrorMessage = "指定された名前は既に使われています。";
+
+		/// <summary>
+		/// アクションの繰り返し間隔の最小値です。
+		/// </summary>
+		public static readonly TimeSpan MinimumInterval = TimeSpan.FromSeconds(1);
 
 		#endregion
 
@@ -62,8 +67,6 @@ namespace SwallowNest.Chidori
 		};
 
 		#endregion
-
-
 
 		// スケジューラから次のアクションを取り出す
 		TimeAction Dequeue()
@@ -136,9 +139,6 @@ namespace SwallowNest.Chidori
 
 		#endregion
 
-		public static readonly TimeSpan MinimumInterval = TimeSpan.FromSeconds(1);
-
-
 		/// <summary>
 		/// コンストラクタ
 		/// </summary>
@@ -180,27 +180,6 @@ namespace SwallowNest.Chidori
 		/// <param name="name"></param>
 		/// <returns></returns>
 		public TimeAction? this[string name] => names.ContainsKey(name) ? names[name] : null;
-
-		#region Implements of IEnumerable<T>
-
-		/// <summary>
-		/// スケジューラに登録されているアクションを列挙します。
-		/// </summary>
-		/// <returns></returns>
-		public IEnumerator<TimeAction> GetEnumerator()
-		{
-			foreach (var (_, queue) in scheduler)
-			{
-				foreach (TimeAction action in queue)
-				{
-					yield return action;
-				}
-			}
-		}
-
-		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-		#endregion
 
 		#endregion
 

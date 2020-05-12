@@ -380,19 +380,6 @@ namespace SwallowNest.Chidori.Tests
 
 		[TestMethod]
 		[TestCategory(CategoryCollection)]
-		public void アクションの列挙ができる()
-		{
-			string[] actionNames = new[] { "a", "b", "c" };
-			foreach (string actionName in actionNames)
-			{
-				scheduler.Add(() => { }, After(1), actionName);
-			}
-
-			scheduler.Select(x => x.Name).OrderBy(x => x).Is(actionNames);
-		}
-
-		[TestMethod]
-		[TestCategory(CategoryCollection)]
 		public void アクションの全削除ができる()
 		{
 			int n = 5;
