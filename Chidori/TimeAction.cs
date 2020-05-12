@@ -27,7 +27,7 @@ namespace SwallowNest.Chidori
 		/// アクションの実行条件。
 		/// nullの場合は実行されます。
 		/// </summary>
-		public Func<bool>? CanExecute { get; }
+		public Func<bool>? CanExecute { private get; set; }
 
 		#region constructor
 
