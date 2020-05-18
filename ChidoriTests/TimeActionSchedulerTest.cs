@@ -182,7 +182,7 @@ namespace SwallowNest.Chidori.Tests
 		public void Stop中は実行されない()
 		{
 			// この秒数後に実行する
-			int n = 1;
+			int n = 2;
 			DateTime time = After(n);
 
 			// 実行時の時間を記録するアクションの追加
@@ -190,20 +190,16 @@ namespace SwallowNest.Chidori.Tests
 
 			// スケジューラの開始
 			var task = scheduler.Start();
+
 			// すぐにストップ
 			scheduler.Stop();
-			scheduler.Status.Is(TimeActionSchedulerStatus.Stop);
+			scheduler.Status.Is(TimeActionSchedulerStatus.Stop, "ストップされてる");
 
 			Wait(n);
 
-			// 出力されていない
-			output.Count.Is(0);
-
-			// カウントは減っている
-			scheduler.Count.Is(0);
-
-			// タスクは終わっていない
-			task.IsCompleted.IsFalse();
+			output.Count.Is(0, "出力されていない");
+			scheduler.Count.Is(0, "カウントは減っている");
+			task.IsCompleted.IsFalse("タスクは終わっていない");
 		}
 
 		[TestMethod]
