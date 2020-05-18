@@ -94,18 +94,38 @@ namespace SwallowNest.Chidori
 				else
 				{
 					TimeAction timeAction = Dequeue();
-					if(timeAction.Name is { })
+
+					// 名前を辞書から削除
+					if (timeAction.Name is { })
 					{
 						names.Remove(timeAction.Name);
 					}
+
+					// 繰り返しアクションを追加する関数
+					void Append(DateTime nextExecTime)
+					{
+						if (Appendition && timeAction.Interval != default)
+						{
+							timeAction.ExecTime = nextExecTime;
+							Add(timeAction);
+						}
+					}
+
+					// 実行前に追加する場合
+					if (timeAction.AdditionType == NextAdditionType.PreExecute)
+					{
+						Append(timeAction.ExecTime + timeAction.Interval);
+					}
+
 					if (Execution)
 					{
 						timeAction.Invoke();
 					}
-					if (Appendition && timeAction.Interval != default)
+
+					// 実行後に追加する場合
+					if (timeAction.AdditionType == NextAdditionType.PostExecute)
 					{
-						timeAction.ExecTime += timeAction.Interval;
-						Add(timeAction);
+						Append(DateTime.Now + timeAction.Interval);
 					}
 				}
 			}

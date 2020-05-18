@@ -352,6 +352,68 @@ namespace SwallowNest.Chidori.Tests
 			output.Count.Is(1, "実行条件がtrueを返すので出力される。");
 		}
 
+		[TestMethod]
+		[TestCategory(CategoryExec)]
+		public void 繰り返しアクションをアクション実行前に追加()
+		{
+			// 2秒ごとに繰り返すアクションだけど、
+			// アクションが終了するのに3秒以上かかる
+			// outputに出力されるのは5秒後と8秒後
+			TimeAction timeAction = new TimeAction(
+				() => { Wait(3); output.Add(NowString); },
+				TimeSpan.FromSeconds(2))
+			{
+				// PreExecuteを指定
+				AdditionType = NextAdditionType.PreExecute
+			};
+			scheduler.Add(timeAction);
+			scheduler.Start();
+
+			Wait(3);
+
+			output.Count.Is(0, "最初のアクションはまだ実行中なので結果は空。");
+			scheduler.Count.Is(1, "既に次のアクションが追加されている。");
+
+			Wait(2);
+			output.Count.Is(1, "最初のアクションの出力がされている。");
+
+			Wait(3);
+			output.Count.Is(2, "２番目のアクションの出力がされている。");
+		}
+
+		[TestMethod]
+		[TestCategory(CategoryExec)]
+		public void 繰り返しアクションをアクション実行後に追加()
+		{
+			// 2秒ごとに繰り返すアクションだけど、
+			// アクションが終了するのに3秒以上かかる
+			// outputに出力されるのは5秒後と10秒後
+			TimeAction timeAction = new TimeAction(
+				() => { Wait(3); output.Add(NowString); },
+				TimeSpan.FromSeconds(2))
+			{
+				// PreExecuteを指定
+				AdditionType = NextAdditionType.PostExecute
+			};
+			scheduler.Add(timeAction);
+			scheduler.Start();
+
+			Wait(3);
+
+			output.Count.Is(0, "最初のアクションはまだ実行中なので結果は空。");
+			scheduler.Count.Is(0, "次のアクションの追加もまだされていない。");
+
+			Wait(2);
+			output.Count.Is(1, "最初のアクションの出力がされている。");
+			scheduler.Count.Is(1, "次のアクションの追加がされている。");
+
+			Wait(3);
+			output.Count.Is(1, "２番目のアクションの出力はまだされていない。");
+
+			Wait(2);
+			output.Count.Is(2, "２番目のアクションの出力がされている。");
+		}
+
 		#endregion
 
 		#region Collection functions

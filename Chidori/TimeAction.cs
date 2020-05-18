@@ -37,6 +37,11 @@ namespace SwallowNest.Chidori
 		/// </summary>
 		public Func<bool>? CanExecute { private get; set; }
 
+		/// <summary>
+		/// 繰り返しアクションを追加タイミングの種類です。
+		/// </summary>
+		public NextAdditionType AdditionType { get; set; }
+
 		#region constructor
 
 		/// <summary>
@@ -48,6 +53,7 @@ namespace SwallowNest.Chidori
 		{
 			Action = action;
 			Name = name;
+			AdditionType = NextAdditionType.PreExecute;
 		}
 
 		/// <summary>
