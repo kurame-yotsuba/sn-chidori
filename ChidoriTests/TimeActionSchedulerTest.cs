@@ -97,18 +97,16 @@ namespace SwallowNest.Chidori.Tests
 
 		[TestMethod]
 		[TestCategory(CategoryAdd)]
-		public void 過去を指定すると追加しない()
+		public void 過去を指定すると追加はできる()
 		{
 			scheduler.Count.Is(0);
 			scheduler.Names.Count.Is(0);
 
-			AssertEx.Throws<ArgumentOutOfRangeException>(() =>
-			{
-				scheduler.Add(() => { }, DateTime.Now.AddSeconds(-1));
-			});
+			//エラーも起きない
+			scheduler.Add(() => { }, DateTime.Now.AddSeconds(-1), "エラーも起きない");
 			
-			scheduler.Count.Is(0);
-			scheduler.Names.Count.Is(0);
+			scheduler.Count.Is(1);
+			scheduler.Names.Count.Is(1);
 		}
 
 		[TestMethod]
@@ -337,7 +335,13 @@ namespace SwallowNest.Chidori.Tests
 		public void TimeActionに実行条件を指定できる()
 		{
 			bool execute = false;
-			scheduler.Add(() => output.Add(NowString), TimeSpan.FromSeconds(2), canExecute: () => execute);
+			TimeAction timeAction = new TimeAction(
+				() => output.Add(NowString),
+				TimeSpan.FromSeconds(2))
+			{
+				CanExecute = () => execute
+			};
+			scheduler.Add(timeAction);
 			scheduler.Start();
 
 			scheduler.Count.Is(1);

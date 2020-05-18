@@ -6,7 +6,20 @@ namespace SwallowNest.Chidori
 {
 	public class TimeAction
 	{
-		Action action;
+		#region static member
+
+		/// <summary>
+		/// アクションの繰り返し間隔の最小値です。
+		/// </summary>
+		public static readonly TimeSpan MinimumInterval = TimeSpan.FromSeconds(1);
+
+		static readonly string intervalMinimumErrorMessage = $"時間間隔は{MinimumInterval.TotalSeconds}秒以上でなければなりません。";
+
+		#endregion
+
+		public Action Action { private get; set; }
+
+		public string? Name { get; }
 
 		/// <summary>
 		/// アクションが実行される時刻
@@ -19,11 +32,6 @@ namespace SwallowNest.Chidori
 		public TimeSpan Interval { get; internal set; }
 
 		/// <summary>
-		/// スケジューラから取得する際のアクション名
-		/// </summary>
-		public string? Name { get; }
-
-		/// <summary>
 		/// アクションの実行条件。
 		/// nullの場合は実行されます。
 		/// </summary>
@@ -31,42 +39,74 @@ namespace SwallowNest.Chidori
 
 		#region constructor
 
-		private TimeAction(Action action, string? name = null, Func<bool>? canExecute = null)
+		/// <summary>
+		/// 共通処理用のコンストラクタ
+		/// </summary>
+		/// <param name="action"></param>
+		/// <param name="name"></param>
+		protected TimeAction(Action action, string? name)
 		{
-			this.action = action;
+			Action = action;
 			Name = name;
-			CanExecute = canExecute;
 		}
 
-		internal TimeAction(
+		/// <summary>
+		/// 指定された時刻にアクションを実行するためのインスタンスを生成します。
+		/// </summary>
+		/// <param name="action"></param>
+		/// <param name="execTime">アクションが実行される時刻</param>
+		/// <param name="name"></param>
+		public TimeAction(
 			Action action,
 			DateTime execTime,
-			string? name = null,
-			Func<bool>? canExecute = null
-			) : this(action, name, canExecute)
+			string? name = null) : this(action, name)
 		{
 			ExecTime = execTime;
 		}
 
-		internal TimeAction(
+		/// <summary>
+		/// 指定された間隔でアクションを
+		/// 繰り返し実行するためのインスタンスを生成します。
+		/// </summary>
+		/// <param name="action"></param>
+		/// <param name="interval">アクションの繰り返し間隔</param>
+		/// <param name="name"></param>
+		public TimeAction(
 			Action action,
 			TimeSpan interval,
-			string? name = null,
-			Func<bool>? canExecute = null
-			) : this(action, name, canExecute)
+			string? name = null) : this(action, name)
 		{
+			// 繰り返し間隔が短すぎないかチェック
+			if (interval < MinimumInterval)
+			{
+				throw new ArgumentOutOfRangeException(nameof(interval), intervalMinimumErrorMessage);
+			}
+
+			// 最初の実行時刻はinterval後
 			ExecTime = DateTime.Now + interval;
 			Interval = interval;
 		}
 
-		internal TimeAction(
+		/// <summary>
+		/// 指定された時刻から一定間隔で、
+		/// アクションを繰り返し実行するためのインスタンスを生成します。
+		/// </summary>
+		/// <param name="action"></param>
+		/// <param name="execTime">アクションが実行される時刻</param>
+		/// <param name="interval">アクションの繰り返し間隔</param>
+		/// <param name="name"></param>
+		public TimeAction(
 			Action action,
 			DateTime execTime,
 			TimeSpan interval,
-			string? name = null,
-			Func<bool>? canExecute = null
-			) : this(action, name, canExecute)
+			string? name = null) : this(action, name)
 		{
+			// 繰り返し間隔が短すぎないかチェック
+			if (interval < MinimumInterval)
+			{
+				throw new ArgumentOutOfRangeException(nameof(interval), intervalMinimumErrorMessage);
+			}
+
 			ExecTime = execTime;
 			Interval = interval;
 		}
@@ -77,17 +117,8 @@ namespace SwallowNest.Chidori
 		{
 			if (CanExecute?.Invoke() ?? true)
 			{
-				action();
+				Action();
 			}
-		}
-
-		/// <summary>
-		/// アクションを更新します。
-		/// </summary>
-		/// <param name="action"></param>
-		public void Update(Action action)
-		{
-			this.action = action;
 		}
 	}
 }
