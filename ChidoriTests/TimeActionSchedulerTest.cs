@@ -364,7 +364,7 @@ namespace SwallowNest.Chidori.Tests
 				TimeSpan.FromSeconds(2))
 			{
 				// PreExecuteを指定
-				AdditionType = NextAdditionType.PreExecute
+				AdditionType = RepeatAdditionType.BeforeExecute
 			};
 			scheduler.Add(timeAction);
 			scheduler.Start();
@@ -393,7 +393,7 @@ namespace SwallowNest.Chidori.Tests
 				TimeSpan.FromSeconds(2))
 			{
 				// PreExecuteを指定
-				AdditionType = NextAdditionType.PostExecute
+				AdditionType = RepeatAdditionType.AfterExecute
 			};
 			scheduler.Add(timeAction);
 			scheduler.Start();

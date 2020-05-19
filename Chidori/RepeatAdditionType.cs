@@ -3,17 +3,17 @@
 	/// <summary>
 	/// 繰り返しアクションを加える際のタイミングを表します。
 	/// </summary>
-	public enum NextAdditionType
+	public enum RepeatAdditionType
 	{
 		/// <summary>
 		/// アクション実行前に追加されます。
 		/// デフォルトはこれです。
 		/// </summary>
-		PreExecute,
+		BeforeExecute,
 
 		/// <summary>
 		/// アクション実行後に追加されます。
 		/// </summary>
-		PostExecute,
+		AfterExecute,
 	}
 }

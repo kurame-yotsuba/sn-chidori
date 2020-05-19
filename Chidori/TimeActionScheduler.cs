@@ -112,7 +112,7 @@ namespace SwallowNest.Chidori
 					}
 
 					// 実行前に追加する場合
-					if (timeAction.AdditionType == NextAdditionType.PreExecute)
+					if (timeAction.AdditionType == RepeatAdditionType.BeforeExecute)
 					{
 						Append(timeAction.ExecTime + timeAction.Interval);
 					}
@@ -123,7 +123,7 @@ namespace SwallowNest.Chidori
 					}
 
 					// 実行後に追加する場合
-					if (timeAction.AdditionType == NextAdditionType.PostExecute)
+					if (timeAction.AdditionType == RepeatAdditionType.AfterExecute)
 					{
 						Append(DateTime.Now + timeAction.Interval);
 					}

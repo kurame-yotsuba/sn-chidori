@@ -40,7 +40,7 @@ namespace SwallowNest.Chidori
 		/// <summary>
 		/// 繰り返しアクションを追加タイミングの種類です。
 		/// </summary>
-		public NextAdditionType AdditionType { get; set; }
+		public RepeatAdditionType AdditionType { get; set; }
 
 		#region constructor
 
@@ -53,7 +53,7 @@ namespace SwallowNest.Chidori
 		{
 			Action = action;
 			Name = name;
-			AdditionType = NextAdditionType.PreExecute;
+			AdditionType = RepeatAdditionType.BeforeExecute;
 		}
 
 		/// <summary>
