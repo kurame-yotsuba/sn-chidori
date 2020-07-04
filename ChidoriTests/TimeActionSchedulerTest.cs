@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SwallowNest.Chidori.Tests
@@ -24,7 +23,7 @@ namespace SwallowNest.Chidori.Tests
 		string NowString => DateTime.Now.ToLongTimeString();
 		// n sec + α　待機
 		void Wait(int second) => Task.Delay(1000 * second + 100).Wait();
-		
+
 		[TestInitialize]
 		public void TestInit()
 		{
@@ -88,9 +87,9 @@ namespace SwallowNest.Chidori.Tests
 		{
 			string actionName = "sample";
 			_names.Count.Is(0);
-		
+
 			scheduler.Add(() => { }, After(1), actionName);
-			
+
 			_names.Count.Is(1);
 			_names.ContainsKey(actionName).IsTrue();
 		}
@@ -104,7 +103,7 @@ namespace SwallowNest.Chidori.Tests
 
 			//エラーも起きない
 			scheduler.Add(() => { }, DateTime.Now.AddSeconds(-1), "エラーも起きない");
-			
+
 			scheduler.Count.Is(1);
 			scheduler.Names.Count.Is(1);
 		}
@@ -445,7 +444,7 @@ namespace SwallowNest.Chidori.Tests
 		public void アクションの全削除ができる()
 		{
 			int n = 5;
-			for(int i = 1; i <= n; i++)
+			for (int i = 1; i <= n; i++)
 			{
 				scheduler.Add(() => { }, After(i), $"{i}");
 			}

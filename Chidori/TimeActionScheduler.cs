@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SwallowNest.Chidori
@@ -141,7 +137,7 @@ namespace SwallowNest.Chidori
 				{
 					names.Remove(timeAction.Name);
 				}
-				if(Appendition && timeAction.Interval != default)
+				if (Appendition && timeAction.Interval != default)
 				{
 					timeAction.ExecTime += timeAction.Interval;
 					Add(timeAction);
@@ -226,7 +222,7 @@ namespace SwallowNest.Chidori
 					q.Enqueue(timeAction);
 					scheduler[time] = q;
 				}
-				if(name is string n)
+				if (name is string n)
 				{
 					names.Add(n, timeAction);
 				}
