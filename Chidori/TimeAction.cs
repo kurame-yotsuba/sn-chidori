@@ -23,8 +23,6 @@ namespace SwallowNest.Chidori
 		/// </summary>
 		public event Action OnSchedule;
 
-		public string? Name { get; }
-
 		/// <summary>
 		/// アクションが実行される時刻です。
 		/// </summary>
@@ -54,11 +52,9 @@ namespace SwallowNest.Chidori
 		/// 共通処理用のコンストラクタ
 		/// </summary>
 		/// <param name="onSchedule"></param>
-		/// <param name="name"></param>
-		protected TimeAction(Action onSchedule, string? name)
+		protected TimeAction(Action onSchedule)
 		{
 			OnSchedule = onSchedule;
-			Name = name;
 			AdditionType = RepeatAdditionType.BeforeExecute;
 		}
 
@@ -67,11 +63,9 @@ namespace SwallowNest.Chidori
 		/// </summary>
 		/// <param name="onSchedule"></param>
 		/// <param name="execTime">アクションが実行される時刻</param>
-		/// <param name="name"></param>
 		public TimeAction(
 			Action onSchedule,
-			DateTime execTime,
-			string? name = null) : this(onSchedule, name)
+			DateTime execTime) : this(onSchedule)
 		{
 			ExecTime = execTime;
 		}
@@ -81,12 +75,10 @@ namespace SwallowNest.Chidori
 		/// </summary>
 		/// <param name="onSchedule"></param>
 		/// <param name="interval">アクションの繰り返し間隔（<see cref="MinimumInterval"/>以上）</param>
-		/// <param name="name"></param>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="interval"/>が<see cref="MinimumInterval"/>未満</exception>
 		public TimeAction(
 			Action onSchedule,
-			TimeSpan interval,
-			string? name = null) : this(onSchedule, name)
+			TimeSpan interval) : this(onSchedule)
 		{
 			// 繰り返し間隔が短すぎないかチェック
 			if (interval < MinimumInterval)
@@ -106,13 +98,11 @@ namespace SwallowNest.Chidori
 		/// <param name="onSchedule"></param>
 		/// <param name="execTime">アクションが実行される時刻</param>
 		/// <param name="interval">アクションの繰り返し間隔</param>
-		/// <param name="name"></param>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="interval"/>が<see cref="MinimumInterval"/>未満</exception>
 		public TimeAction(
 			Action onSchedule,
 			DateTime execTime,
-			TimeSpan interval,
-			string? name = null) : this(onSchedule, name)
+			TimeSpan interval) : this(onSchedule)
 		{
 			// 繰り返し間隔が短すぎないかチェック
 			if (interval < MinimumInterval)

@@ -10,29 +10,20 @@ namespace SwallowNest.Chidori
 	/// </summary>
 	public class TimeActionScheduler
 	{
-		#region static member
-
-		static readonly string nameUsedErrorMessage = "指定された名前は既に使われています。";
-
-		#endregion
-
 		#region private member
 
 		// 実行待ちのアクションを格納する実行時刻をキーとする順序付き辞書
-		readonly SortedDictionary<DateTime, Queue<TimeAction>> scheduler;
+		private readonly SortedDictionary<DateTime, Queue<TimeAction>> scheduler;
 
-		// 実行待ちのアクションを格納する名前をキーとする辞書
-		readonly Dictionary<string, TimeAction> names;
-
-		Task? execTask;
+		private Task? execTask;
 
 		// スケジューラへのタスクの同時追加防止用
-		readonly object schedulerSync = new object();
+		private readonly object schedulerSync = new object();
 
 		#region conditions
 
 		// スケジューラを稼働させるかどうか
-		bool Loop => Status switch
+		private bool Loop => Status switch
 		{
 			TimeActionSchedulerStatus.Stop => true,
 			TimeActionSchedulerStatus.Running => true,
@@ -40,24 +31,24 @@ namespace SwallowNest.Chidori
 			_ => false
 		};
 
-		bool Execution => Status switch
+		private bool Execution => Status switch
 		{
 			TimeActionSchedulerStatus.Running => true,
 			TimeActionSchedulerStatus.EndWaitAll => true,
 			_ => false
 		};
 
-		bool Appendition => Status switch
+		private bool Appendition => Status switch
 		{
 			TimeActionSchedulerStatus.Running => true,
 			TimeActionSchedulerStatus.Stop => true,
 			_ => false
 		};
 
-		#endregion
+		#endregion conditions
 
 		// スケジューラから次のアクションを取り出す
-		TimeAction Dequeue()
+		private TimeAction Dequeue()
 		{
 			lock (schedulerSync)
 			{
@@ -78,7 +69,23 @@ namespace SwallowNest.Chidori
 			}
 		}
 
-		async Task CreateExecTask()
+		// 繰り返しアクションを追加する関数
+		private void Append(TimeAction timeAction, DateTime nextExecTime)
+		{
+			if (Appendition && timeAction.Interval != default)
+			{
+				timeAction.ExecTime = nextExecTime;
+				Add(timeAction);
+			}
+		}
+
+		// アクションを実行する関数
+		private void Invoke(TimeAction timeAction)
+		{
+			if (Execution) { timeAction.Invoke(); }
+		}
+
+		private async Task CreateExecTask()
 		{
 			while (Loop)
 			{
@@ -91,52 +98,30 @@ namespace SwallowNest.Chidori
 				{
 					TimeAction timeAction = Dequeue();
 
-					// 名前を辞書から削除
-					if (timeAction.Name is { })
+					switch (timeAction.AdditionType)
 					{
-						names.Remove(timeAction.Name);
-					}
-
-					// 繰り返しアクションを追加する関数
-					void Append(DateTime nextExecTime)
-					{
-						if (Appendition && timeAction.Interval != default)
-						{
-							timeAction.ExecTime = nextExecTime;
-							Add(timeAction);
-						}
-					}
-
-					// 実行前に追加する場合
-					if (timeAction.AdditionType == RepeatAdditionType.BeforeExecute)
-					{
-						Append(timeAction.ExecTime + timeAction.Interval);
-					}
-
-					if (Execution)
-					{
-						timeAction.Invoke();
-					}
-
-					// 実行後に追加する場合
-					if (timeAction.AdditionType == RepeatAdditionType.AfterExecute)
-					{
-						Append(DateTime.Now + timeAction.Interval);
+						// 実行前に追加する場合
+						case RepeatAdditionType.BeforeExecute:
+							Append(timeAction, timeAction.ExecTime + timeAction.Interval);
+							Invoke(timeAction);
+							break;
+						// 実行後に追加する場合
+						case RepeatAdditionType.AfterExecute:
+							Invoke(timeAction);
+							Append(timeAction, DateTime.Now + timeAction.Interval);
+							break;
 					}
 				}
 			}
 			execTask = null;
 		}
 
-		void Reflesh()
+		private void Reflesh()
 		{
 			while (Count > 0 && PeekTime < DateTime.Now)
 			{
 				TimeAction timeAction = Dequeue();
-				if (timeAction.Name is { })
-				{
-					names.Remove(timeAction.Name);
-				}
+
 				if (Appendition && timeAction.Interval != default)
 				{
 					timeAction.ExecTime += timeAction.Interval;
@@ -145,7 +130,7 @@ namespace SwallowNest.Chidori
 			}
 		}
 
-		#endregion
+		#endregion private member
 
 		/// <summary>
 		/// コンストラクタ
@@ -153,15 +138,9 @@ namespace SwallowNest.Chidori
 		public TimeActionScheduler()
 		{
 			scheduler = new SortedDictionary<DateTime, Queue<TimeAction>>();
-			names = new Dictionary<string, TimeAction>();
 		}
 
 		#region Collection functions
-
-		/// <summary>
-		/// アクション名を列挙します。
-		/// </summary>
-		public IReadOnlyCollection<string> Names => names.Keys;
 
 		/// <summary>
 		/// スケジューラに登録されているタスクの個数です。
@@ -176,20 +155,11 @@ namespace SwallowNest.Chidori
 			lock (schedulerSync)
 			{
 				scheduler.Clear();
-				names.Clear();
 				Count = 0;
 			}
 		}
 
-		/// <summary>
-		/// 名前に紐付くアクションを返します。
-		/// アクションが見つからなかった場合、nullを返します。
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public TimeAction? this[string name] => names.ContainsKey(name) ? names[name] : null;
-
-		#endregion
+		#endregion Collection functions
 
 		/// <summary>
 		/// スケジューラの稼働状態を表します。
@@ -198,15 +168,13 @@ namespace SwallowNest.Chidori
 
 		#region Add functions
 
+		/// <summary>
+		/// スケジューラにアクションを追加します。
+		/// </summary>
+		/// <param name="timeAction"></param>
 		public void Add(TimeAction timeAction)
 		{
-			var (time, name) = (timeAction.ExecTime, timeAction.Name);
-
-			// 名前の重複チェック
-			if (name is { } && names.ContainsKey(name))
-			{
-				throw new ArgumentOutOfRangeException(nameof(name), nameUsedErrorMessage);
-			}
+			DateTime time = timeAction.ExecTime;
 
 			lock (schedulerSync)
 			{
@@ -222,63 +190,61 @@ namespace SwallowNest.Chidori
 					q.Enqueue(timeAction);
 					scheduler[time] = q;
 				}
-				if (name is string n)
-				{
-					names.Add(n, timeAction);
-				}
+
 				Count++;
 			}
 		}
 
 		/// <summary>
-		/// スケジューラに指定した時刻に実行されるアクションを追加します。
+		/// 指定した時刻に一度だけ実行されるアクションをスケジューラに追加します。
 		/// </summary>
 		/// <param name="action"></param>
 		/// <param name="execTime"></param>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public void Add(Action action, DateTime execTime, string? name = null)
+		/// <returns>スケジューラに追加された<see cref="TimeAction"/>インスタンス</returns>
+		public TimeAction Add(Action action, DateTime execTime)
 		{
-			TimeAction timeAction = new TimeAction(action, execTime, name);
+			TimeAction timeAction = new TimeAction(action, execTime);
 
 			Add(timeAction);
+
+			return timeAction;
 		}
 
 		/// <summary>
-		/// スケジューラに一定間隔で繰り返し実行されるアクションを追加します。
-		/// </summary>
-		/// <param name="action"></param>
-		/// <param name="interval"></param>
-		/// <param name="name"></param>
-		public void Add(Action action, TimeSpan interval, string? name = null)
-		{
-			Add(action, DateTime.Now + interval, interval, name);
-		}
-
-		/// <summary>
-		/// スケジューラに指定した時刻に実行され、
-		/// その後は一定間隔で繰り返し実行されるアクションを追加します。
+		/// 指定した時刻に実行され、
+		/// その後は一定間隔で繰り返し実行されるアクションをスケジューラに追加します。
 		/// </summary>
 		/// <param name="action"></param>
 		/// <param name="execTime">最初にアクションが実行される時刻</param>
 		/// <param name="interval">アクションが実行される間隔</param>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public void Add(
+		/// <returns>スケジューラに追加された<see cref="TimeAction"/>インスタンス</returns>
+		public TimeAction Add(
 			Action action,
 			DateTime execTime,
-			TimeSpan interval,
-			string? name = null)
+			TimeSpan interval)
 		{
-			TimeAction timeAction = new TimeAction(action, execTime, interval, name);
+			TimeAction timeAction = new TimeAction(action, execTime, interval);
 			Add(timeAction);
+
+			return timeAction;
 		}
 
-		#endregion
+		/// <summary>
+		/// 一定間隔で繰り返し実行されるアクションをスケジューラに追加します。
+		/// </summary>
+		/// <param name="action"></param>
+		/// <param name="interval"></param>
+		/// <returns>スケジューラに追加された<see cref="TimeAction"/>インスタンス</returns>
+		public TimeAction Add(Action action, TimeSpan interval)
+		{
+			return Add(action, DateTime.Now + interval, interval);
+		}
 
+		#endregion Add functions
 
 		/// <summary>
 		/// スケジューラが次にアクションを実行する時間を返します。
+		/// スケジューラが空の場合、<see cref="DateTime.MaxValue"/>を返します。
 		/// </summary>
 		public DateTime PeekTime
 		{
@@ -286,8 +252,8 @@ namespace SwallowNest.Chidori
 			{
 				lock (schedulerSync)
 				{
-					var (time, _) = scheduler.First();
-					return time;
+					var (time, _) = scheduler.FirstOrDefault();
+					return time == default ? DateTime.MaxValue : time;
 				}
 			}
 		}
@@ -332,6 +298,6 @@ namespace SwallowNest.Chidori
 			Clear();
 		}
 
-		#endregion
+		#endregion Operations of scheduler status
 	}
 }

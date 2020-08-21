@@ -9,132 +9,126 @@ namespace SwallowNest.Chidori.Tests
 	[TestClass]
 	public class TimeActionSchedulerTest
 	{
-		const string CategoryAdd = "Add";
-		const string CategoryExec = "Exec";
-		const string CategoryCollection = "Collection";
+		private const string CategoryAdd = "Add";
+		private const string CategoryExec = "Exec";
+		private const string CategoryCollection = "Collection";
 
-		TimeActionScheduler scheduler;
-		SortedDictionary<DateTime, Queue<TimeAction>> _scheduler;
-		Dictionary<string, TimeAction> _names;
+		// 実行時刻のずれの許容範囲
+		private static readonly TimeSpan delta = TimeSpan.FromSeconds(0.1);
 
-		List<string> output;
+		private TimeActionScheduler scheduler;
 
-		DateTime After(int n) => DateTime.Now.AddSeconds(n);
-		string NowString => DateTime.Now.ToLongTimeString();
-		// n sec + α　待機
-		void Wait(int second) => Task.Delay(1000 * second + 100).Wait();
+		// schedulerの内部でTimeActionを管理するコレクション
+		private SortedDictionary<DateTime, Queue<TimeAction>> _scheduler;
+
+		private List<DateTime> output;
+
+		// n sec あとの時刻を返す
+		private DateTime After(int n) => DateTime.Now.AddSeconds(n);
+
+		// n sec + α 待機
+		private void Wait(int second) => Task.Delay(1000 * second + 100).Wait();
+
+		// 実行時刻の保存
+		private void OutputNow() => output.Add(DateTime.Now);
 
 		[TestInitialize]
 		public void TestInit()
 		{
 			scheduler = new TimeActionScheduler();
 			_scheduler = scheduler.AsDynamic().scheduler;
-			_names = scheduler.AsDynamic().names;
-			output = new List<string>();
+			output = new List<DateTime>();
 		}
+
+		[TestMethod]
+		public void Constructor()
+		{
+			TimeActionScheduler scheduler = new TimeActionScheduler();
+			scheduler.Count.Is(0, "初期値は0");
+			scheduler.PeekTime.Is(DateTime.MaxValue, "空の場合は最大値");
+			scheduler.Status.Is(TimeActionSchedulerStatus.Stop, "初期値はStop");
+		}
+
+		#region Collection functions
+
+		[TestMethod]
+		[TestCategory(CategoryCollection)]
+		public void 個数カウントができる()
+		{
+			scheduler.Count.Is(0, "初期値は0");
+			scheduler.Add(() => { }, default(DateTime));
+			scheduler.Count.Is(1, "1個増えてる");
+		}
+
+		[TestMethod]
+		[TestCategory(CategoryCollection)]
+		public void アクションの全削除ができる()
+		{
+			int n = 5;
+			for (int i = 1; i <= n; i++)
+			{
+				scheduler.Add(() => { }, default(DateTime));
+			}
+
+			scheduler.Count.Is(n, "n個になってる");
+			scheduler.Clear();
+			_scheduler.Count.Is(0, "全部消えてる");
+			scheduler.Count.Is(0, "0になってる");
+		}
+
+		#endregion Collection functions
 
 		#region Add functions
 
 		[TestMethod]
 		[TestCategory(CategoryAdd)]
-		public void 時間指定でアクションの追加ができる()
+		public void Add_TimeAction()
 		{
-			// 追加できているかprivateメンバの
-			// schedulerのカウントを見て確認
-			_scheduler.Count.Is(0);
+			TimeAction timeAction = new TimeAction(() => { }, default(DateTime));
+			scheduler.Add(timeAction);
 
-			scheduler.Add(() => { }, After(1));
+			// 追加できているかprivateメンバの
+			// schedulerを見て確認
+			_scheduler.Count.Is(1);
+			_scheduler.ContainsKey(timeAction.ExecTime).IsTrue();
+			_scheduler[timeAction.ExecTime].Count.Is(1);
+			_scheduler[timeAction.ExecTime].Peek().Is(timeAction);
+		}
+
+		[TestMethod]
+		[TestCategory(CategoryAdd)]
+		public void Add_時間指定アクション()
+		{
+			TimeAction timeAction = scheduler.Add(() => { }, default(DateTime));
 
 			_scheduler.Count.Is(1);
+			_scheduler.ContainsKey(timeAction.ExecTime).IsTrue();
+			_scheduler[timeAction.ExecTime].Count.Is(1);
+			_scheduler[timeAction.ExecTime].Peek().Is(timeAction);
 		}
 
 		[TestMethod]
 		[TestCategory(CategoryAdd)]
-		public void 一定時間で繰り返すアクションの追加ができる()
+		public void Add_一定時間で繰り返すアクション()
 		{
-			// 2秒ごとに実行するアクションの追加
-			scheduler.Add(() => output.Add(""), TimeSpan.FromSeconds(2), "sample");
+			TimeAction timeAction = scheduler.Add(() => { }, TimeSpan.FromSeconds(1));
 
-			scheduler.Start();
-
-			Wait(4);
-
-			// 4秒待ったから2回実行されているはず
-			output.Count.Is(2);
+			_scheduler.Count.Is(1);
+			_scheduler.ContainsKey(timeAction.ExecTime).IsTrue();
+			_scheduler[timeAction.ExecTime].Count.Is(1);
+			_scheduler[timeAction.ExecTime].Peek().Is(timeAction);
 		}
 
 		[TestMethod]
 		[TestCategory(CategoryAdd)]
-		public void 最初の時刻を指定したらその後は一定時間で繰り返す追加()
+		public void Add_時刻指定かつ繰り返すアクション()
 		{
-			// 1秒後に実行し、その後は3秒ごとに実行するアクションの追加
-			scheduler.Add(() => output.Add(""), After(1), TimeSpan.FromSeconds(3), "sample");
+			TimeAction timeAction = scheduler.Add(() => { }, default, TimeSpan.FromSeconds(1));
 
-			scheduler.Start();
-
-			// 1秒待ったから1つ増えてるはず
-			Wait(1);
-			output.Count.Is(1);
-
-			// 次に3秒待ったから1つ増えてるはず
-			Wait(3);
-			output.Count.Is(2);
-		}
-
-		[TestMethod]
-		[TestCategory(CategoryAdd)]
-		public void アクションの追加でnameがnamesに追加される()
-		{
-			string actionName = "sample";
-			_names.Count.Is(0);
-
-			scheduler.Add(() => { }, After(1), actionName);
-
-			_names.Count.Is(1);
-			_names.ContainsKey(actionName).IsTrue();
-		}
-
-		[TestMethod]
-		[TestCategory(CategoryAdd)]
-		public void 過去を指定すると追加はできる()
-		{
-			scheduler.Count.Is(0);
-			scheduler.Names.Count.Is(0);
-
-			//エラーも起きない
-			scheduler.Add(() => { }, DateTime.Now.AddSeconds(-1), "エラーも起きない");
-
-			scheduler.Count.Is(1);
-			scheduler.Names.Count.Is(1);
-		}
-
-		[TestMethod]
-		[TestCategory(CategoryAdd)]
-		public void 既に使われている名前を指定すると追加しない()
-		{
-			scheduler.Add(() => { }, After(1), "");
-
-			scheduler.Count.Is(1);
-			scheduler.Names.Count.Is(1);
-
-			AssertEx.Throws<ArgumentOutOfRangeException>(() =>
-			{
-				scheduler.Add(() => { }, After(1), "");
-			});
-
-			scheduler.Count.Is(1);
-			scheduler.Names.Count.Is(1);
-		}
-
-		[TestMethod]
-		[TestCategory(CategoryAdd)]
-		public void 名前を指定しなくても追加できる()
-		{
-			scheduler.Add(() => { }, After(1));
-			scheduler.Count.Is(1);
-
-			// 名前で検索する辞書の方には登録されない
-			scheduler.Names.Count.Is(0);
+			_scheduler.Count.Is(1);
+			_scheduler.ContainsKey(timeAction.ExecTime).IsTrue();
+			_scheduler[timeAction.ExecTime].Count.Is(1);
+			_scheduler[timeAction.ExecTime].Peek().Is(timeAction);
 		}
 
 		[TestMethod]
@@ -144,12 +138,12 @@ namespace SwallowNest.Chidori.Tests
 			int n = 100;
 			Parallel.For(0, n, i =>
 			{
-				scheduler.Add(() => { }, After(1));
+				scheduler.Add(() => { }, default(DateTime));
 			});
 			scheduler.Count.Is(n);
 		}
 
-		#endregion
+		#endregion Add functions
 
 		#region Exec functions
 
@@ -162,18 +156,37 @@ namespace SwallowNest.Chidori.Tests
 			DateTime time = After(n);
 
 			// 実行時の時間を記録するアクションの追加
-			scheduler.Add(() => output.Add(NowString), time);
+			scheduler.Add(OutputNow, time);
 
 			// スケジューラの開始
+			scheduler.Status.Is(TimeActionSchedulerStatus.Stop, "スケジューラは動いていない");
 			var task = scheduler.Start();
+			scheduler.Status.Is(TimeActionSchedulerStatus.Running, "スケジューラ実行中");
 
 			Wait(n + 1);
 
 			// 出力確認
-			output[0].Is(time.ToLongTimeString());
+			output.Count.Is(1, "アクションが１回実行されている");
+			output[0].Is(execTime => execTime - time < delta, "指定した時刻に実行されている");
+			scheduler.Count.Is(0, "実行したあとはカウントが減っている");
+		}
 
-			// 実行したあとはカウントが減っている
-			scheduler.Count.Is(0);
+		[TestMethod]
+		[TestCategory(CategoryExec)]
+		public void 繰り返し実行される()
+		{
+			DateTime now = DateTime.Now;
+			DateTime exec1 = now.AddSeconds(2);
+			DateTime exec2 = now.AddSeconds(4);
+			scheduler.Add(OutputNow, TimeSpan.FromSeconds(2));
+			scheduler.Start();
+
+			Wait(4);
+
+			output.Count.Is(2, "アクションが２回実行されている");
+			output[0].Is(execTime => execTime - exec1 < delta);
+			output[1].Is(execTime => execTime - exec2 < delta);
+			scheduler.Count.Is(1, "カウントは減っていない");
 		}
 
 		[TestMethod]
@@ -181,11 +194,11 @@ namespace SwallowNest.Chidori.Tests
 		public void Stop中は実行されない()
 		{
 			// この秒数後に実行する
-			int n = 2;
+			int n = 1;
 			DateTime time = After(n);
 
 			// 実行時の時間を記録するアクションの追加
-			scheduler.Add(() => output.Add(NowString), time);
+			scheduler.Add(OutputNow, time);
 
 			// スケジューラの開始
 			var task = scheduler.Start();
@@ -207,12 +220,12 @@ namespace SwallowNest.Chidori.Tests
 		{
 			// この秒数後に実行する
 			int n = 1;
-			DateTime time = After(n);
+			DateTime time = After(1);
 
 			// 実行時の時間を記録するアクションの追加
-			scheduler.Add(() => output.Add(NowString), time);
-			scheduler.Add(() => output.Add(NowString), time);
-			scheduler.Add(() => output.Add(NowString), time);
+			scheduler.Add(OutputNow, time);
+			scheduler.Add(OutputNow, time);
+			scheduler.Add(OutputNow, time);
 
 			// スケジューラの開始
 			var task = scheduler.Start();
@@ -220,46 +233,40 @@ namespace SwallowNest.Chidori.Tests
 			scheduler.EndWaitAll();
 			scheduler.Status.Is(TimeActionSchedulerStatus.EndWaitAll);
 
-			Wait(n);
+			Wait(n + 1);
 
-			// 出力されている
-			output.Count.Is(3);
+			output.Count.Is(3, "すべて出力されている");
+			scheduler.Count.Is(0, "カウントは減っている");
+			task.IsCompleted.IsTrue("タスクは終了している");
 
-			// カウントは減っている
-			scheduler.Count.Is(0);
-
-			// タスクは終了している
-			task.IsCompleted.IsTrue();
-
-			// execTask変数はnullになっている
 			Task execTask = scheduler.AsDynamic().execTask;
-			execTask.IsNull();
+			execTask.IsNull("execTask変数はnullになっている");
 		}
 
 		[TestMethod]
 		[TestCategory(CategoryExec)]
 		public void スケジューラのアクションを待たずに終了できる()
 		{
-			// この秒数後に実行する
-			int n = 5;
-			DateTime time = After(n);
-
 			// 実行時の時間を記録するアクションの追加
-			scheduler.Add(() => output.Add(NowString), time);
-			scheduler.Add(() => output.Add(NowString), time);
-			scheduler.Add(() => output.Add(NowString), time);
+			// 1つだけ早く実行する
+			scheduler.Add(OutputNow, After(1));
+			scheduler.Add(OutputNow, After(3));
+			scheduler.Add(OutputNow, After(3));
 
 			// スケジューラの開始
 			var task = scheduler.Start();
-			// スケジューラにあるアクションが終わったら終了
+
+			Wait(2);
+
+			// スケジューラにあるアクションの終了を待たずに終了
 			scheduler.EndImmediately();
 			scheduler.Status.Is(TimeActionSchedulerStatus.EndImmediately);
 
-			// 少しだけ待機
-			Wait(1);
+			// 待機
+			Wait(2);
 
-			// 出力されていない
-			output.Count.Is(0);
+			// 最初のアクションだけ実行されている
+			output.Count.Is(1);
 
 			// カウントは減っている
 			scheduler.Count.Is(0);
@@ -276,24 +283,24 @@ namespace SwallowNest.Chidori.Tests
 		[TestCategory(CategoryExec)]
 		public void スタート時点で過去のアクションは実行しない()
 		{
-			scheduler.Add(() => output.Add(""), After(1));
+			scheduler.Add(OutputNow, After(1));
 
 			Wait(2);
 
 			scheduler.Start();
 
-			// 出力されていない
-			output.Count.Is(0, "出力のカウント");
+			output.Count.Is(0, "過去のアクションは実行されない");
 
-			// スケジューラのカウントは減っている
-			scheduler.Count.Is(0, "スケジューラのカウント");
+			scheduler.Count.Is(0, "スケジューラのカウントは減っている");
 		}
 
 		[TestMethod]
 		[TestCategory(CategoryExec)]
 		public void スタート時点で過去の繰り返しアクションは過去の時刻基準で再度追加()
 		{
-			scheduler.Add(() => output.Add(NowString), TimeSpan.FromSeconds(2));
+			DateTime now = DateTime.Now;
+			DateTime exec = now.AddSeconds(6);
+			scheduler.Add(OutputNow, TimeSpan.FromSeconds(2));
 
 			Wait(3);
 
@@ -304,14 +311,17 @@ namespace SwallowNest.Chidori.Tests
 			Wait(2);
 
 			output.Count.Is(1, "待機後の出力のカウント");
-			scheduler.Count.Is(1, "スケジューラのカウント");
+			output[0].Is(execTime => execTime - exec < delta);
+			scheduler.Count.Is(1, "カウントは減っていない");
 		}
 
 		[TestMethod]
 		[TestCategory(CategoryExec)]
 		public void スタート時点で過去の時刻指定繰り返しアクションは指定時刻基準で再度追加()
 		{
-			scheduler.Add(() => output.Add(NowString), After(2), TimeSpan.FromSeconds(3));
+			DateTime time = After(2);
+			DateTime exec = time.AddSeconds(5);
+			scheduler.Add(OutputNow, time, TimeSpan.FromSeconds(3));
 
 			Wait(3);
 
@@ -322,32 +332,10 @@ namespace SwallowNest.Chidori.Tests
 			Wait(2);
 
 			output.Count.Is(1, "待機後の出力のカウント");
+			output[0].Is(execTime => execTime - exec < delta);
 			scheduler.Count.Is(1, "スケジューラのカウント");
 		}
 
-		[TestMethod]
-		[TestCategory(CategoryExec)]
-		public void TimeActionに実行条件を指定できる()
-		{
-			bool execute = false;
-			TimeAction timeAction = new TimeAction(
-				() => output.Add(NowString),
-				TimeSpan.FromSeconds(2));
-			timeAction.CanExecute += () => execute;
-			scheduler.Add(timeAction);
-			scheduler.Start();
-
-			scheduler.Count.Is(1);
-
-			Wait(2);
-
-			output.Count.Is(0, "実行条件がfalseを返すので出力されない。");
-
-			execute = true;
-
-			Wait(2);
-			output.Count.Is(1, "実行条件がtrueを返すので出力される。");
-		}
 
 		[TestMethod]
 		[TestCategory(CategoryExec)]
@@ -357,7 +345,7 @@ namespace SwallowNest.Chidori.Tests
 			// アクションが終了するのに3秒以上かかる
 			// outputに出力されるのは5秒後と8秒後
 			TimeAction timeAction = new TimeAction(
-				() => { Wait(3); output.Add(NowString); },
+				() => { Wait(3); OutputNow(); },
 				TimeSpan.FromSeconds(2))
 			{
 				// PreExecuteを指定
@@ -386,7 +374,7 @@ namespace SwallowNest.Chidori.Tests
 			// アクションが終了するのに3秒以上かかる
 			// outputに出力されるのは5秒後と10秒後
 			TimeAction timeAction = new TimeAction(
-				() => { Wait(3); output.Add(NowString); },
+				() => { Wait(3); OutputNow(); },
 				TimeSpan.FromSeconds(2))
 			{
 				// PreExecuteを指定
@@ -411,70 +399,18 @@ namespace SwallowNest.Chidori.Tests
 			output.Count.Is(2, "２番目のアクションの出力がされている。");
 		}
 
-		#endregion
-
-		#region Collection functions
+		#endregion Exec functions
 
 		[TestMethod]
-		[TestCategory(CategoryCollection)]
-		public void 個数カウントができる()
+		public void PeekTime_スケジューラが空()
 		{
-			scheduler.Count.Is(0);
-			scheduler.Add(() => { }, After(1));
-			scheduler.Count.Is(1);
+			scheduler.PeekTime.Is(DateTime.MaxValue);
 		}
 
 		[TestMethod]
-		[TestCategory(CategoryCollection)]
-		public void 名前の列挙ができる()
+		public void PeekTime_スケジューラが空じゃない()
 		{
-			string[] actionNames = new[] { "a", "b", "c" };
-			foreach (string actionName in actionNames)
-			{
-				scheduler.Add(() => { }, After(1), actionName);
-			}
-
-			scheduler.Names.OrderBy(x => x).Is(actionNames);
-		}
-
-		[TestMethod]
-		[TestCategory(CategoryCollection)]
-		public void アクションの全削除ができる()
-		{
-			int n = 5;
-			for (int i = 1; i <= n; i++)
-			{
-				scheduler.Add(() => { }, After(i), $"{i}");
-			}
-
-			scheduler.Count.Is(n);
-			scheduler.Clear();
-
-			scheduler.Count.Is(0);
-			scheduler.Names.Count.Is(0);
-		}
-
-		#endregion
-
-		[TestMethod]
-		public void 名前からTimeActionを検索できる()
-		{
-			string actionName = "sample";
-			scheduler.Add(() => { }, After(1), actionName);
-
-			scheduler[actionName].Name.Is(actionName);
-		}
-
-		[TestMethod]
-		public void 名前を検索して見つからなかった場合はnull()
-		{
-			scheduler[""].IsNull();
-		}
-
-		[TestMethod]
-		public void 次に実行される時間を取得できる()
-		{
-			DateTime time = After(5);
+			DateTime time = DateTime.Now.AddSeconds(1);
 			scheduler.Add(() => { }, time.AddSeconds(1));
 			scheduler.Add(() => { }, time);
 			scheduler.Add(() => { }, time.AddSeconds(3));
