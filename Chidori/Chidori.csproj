@@ -5,6 +5,13 @@
     <RootNamespace>SwallowNest.Chidori</RootNamespace>
     <AssemblyName>SwallowNest.Chidori</AssemblyName>
     <Nullable>enable</Nullable>
+    <Version>0.2.0</Version>
+    <Authors>Kurame</Authors>
+    <Company>Kurame</Company>
+    <Product>Chidori</Product>
+    <Description>Easy scheduler of Action delegate.</Description>
+    <PackageProjectUrl>https://github.com/kurame-yotsuba/sn-chidori</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kurame-yotsuba/sn-chidori</RepositoryUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 </Project>
