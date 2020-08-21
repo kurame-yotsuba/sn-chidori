@@ -11,11 +11,14 @@ namespace SwallowNest.Chidori
 		/// </summary>
 		public static readonly TimeSpan MinimumInterval = TimeSpan.FromSeconds(1);
 
-		static readonly string intervalMinimumErrorMessage = $"時間間隔は{MinimumInterval.TotalSeconds}秒以上でなければなりません。";
+		private static readonly string intervalMinimumErrorMessage = $"時間間隔は{MinimumInterval.TotalSeconds}秒以上でなければなりません。";
 
-		#endregion
+		#endregion static member
 
-		public Action Action { private get; set; }
+		/// <summary>
+		/// 時間になったら実行されるハンドラです。
+		/// </summary>
+		public event Action OnSchedule;
 
 		public string? Name { get; }
 
@@ -33,7 +36,7 @@ namespace SwallowNest.Chidori
 		/// アクションの実行条件。
 		/// nullの場合は実行されます。
 		/// </summary>
-		public Func<bool>? CanExecute { private get; set; }
+		public event Func<bool>? CanExecute;
 
 		/// <summary>
 		/// 繰り返しアクションを追加タイミングの種類です。
@@ -45,11 +48,11 @@ namespace SwallowNest.Chidori
 		/// <summary>
 		/// 共通処理用のコンストラクタ
 		/// </summary>
-		/// <param name="action"></param>
+		/// <param name="onSchedule"></param>
 		/// <param name="name"></param>
-		protected TimeAction(Action action, string? name)
+		protected TimeAction(Action onSchedule, string? name)
 		{
-			Action = action;
+			OnSchedule = onSchedule;
 			Name = name;
 			AdditionType = RepeatAdditionType.BeforeExecute;
 		}
@@ -57,13 +60,13 @@ namespace SwallowNest.Chidori
 		/// <summary>
 		/// 指定された時刻にアクションを実行するためのインスタンスを生成します。
 		/// </summary>
-		/// <param name="action"></param>
+		/// <param name="onSchedule"></param>
 		/// <param name="execTime">アクションが実行される時刻</param>
 		/// <param name="name"></param>
 		public TimeAction(
-			Action action,
+			Action onSchedule,
 			DateTime execTime,
-			string? name = null) : this(action, name)
+			string? name = null) : this(onSchedule, name)
 		{
 			ExecTime = execTime;
 		}
@@ -72,13 +75,13 @@ namespace SwallowNest.Chidori
 		/// 指定された間隔でアクションを
 		/// 繰り返し実行するためのインスタンスを生成します。
 		/// </summary>
-		/// <param name="action"></param>
+		/// <param name="onSchedule"></param>
 		/// <param name="interval">アクションの繰り返し間隔</param>
 		/// <param name="name"></param>
 		public TimeAction(
-			Action action,
+			Action onSchedule,
 			TimeSpan interval,
-			string? name = null) : this(action, name)
+			string? name = null) : this(onSchedule, name)
 		{
 			// 繰り返し間隔が短すぎないかチェック
 			if (interval < MinimumInterval)
@@ -95,15 +98,15 @@ namespace SwallowNest.Chidori
 		/// 指定された時刻から一定間隔で、
 		/// アクションを繰り返し実行するためのインスタンスを生成します。
 		/// </summary>
-		/// <param name="action"></param>
+		/// <param name="onSchedule"></param>
 		/// <param name="execTime">アクションが実行される時刻</param>
 		/// <param name="interval">アクションの繰り返し間隔</param>
 		/// <param name="name"></param>
 		public TimeAction(
-			Action action,
+			Action onSchedule,
 			DateTime execTime,
 			TimeSpan interval,
-			string? name = null) : this(action, name)
+			string? name = null) : this(onSchedule, name)
 		{
 			// 繰り返し間隔が短すぎないかチェック
 			if (interval < MinimumInterval)
@@ -115,13 +118,13 @@ namespace SwallowNest.Chidori
 			Interval = interval;
 		}
 
-		#endregion
+		#endregion constructor
 
 		internal void Invoke()
 		{
 			if (CanExecute?.Invoke() ?? true)
 			{
-				Action();
+				OnSchedule();
 			}
 		}
 	}

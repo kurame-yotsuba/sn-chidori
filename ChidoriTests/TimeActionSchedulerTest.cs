@@ -332,10 +332,8 @@ namespace SwallowNest.Chidori.Tests
 			bool execute = false;
 			TimeAction timeAction = new TimeAction(
 				() => output.Add(NowString),
-				TimeSpan.FromSeconds(2))
-			{
-				CanExecute = () => execute
-			};
+				TimeSpan.FromSeconds(2));
+			timeAction.CanExecute += () => execute;
 			scheduler.Add(timeAction);
 			scheduler.Start();
 
