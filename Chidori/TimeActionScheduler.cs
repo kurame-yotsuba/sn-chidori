@@ -161,6 +161,25 @@ namespace SwallowNest.Chidori
 			}
 		}
 
+		/// <summary>
+		/// スケジューラから<paramref name="timeAction"/>を削除します。
+		/// </summary>
+		/// <param name="timeAction"></param>
+		/// <returns>true: 削除に成功, false: <paramref name="timeAction"/>が見つからなかった</returns>
+		public bool Remove(TimeAction timeAction)
+		{
+			lock (schedulerSync)
+			{
+				if (!scheduler.ContainsKey(timeAction.ExecTime))
+				{
+					return false;
+				}
+				LinkedList<TimeAction> list = scheduler[timeAction.ExecTime];
+				bool success = list.Remove(timeAction);
+				return success;
+			}
+		}
+
 		#endregion Collection functions
 
 		/// <summary>
@@ -198,10 +217,10 @@ namespace SwallowNest.Chidori
 		}
 
 		/// <summary>
-		/// 指定した時刻に一度だけ実行されるアクションをスケジューラに追加します。
+		/// 指定した時刻に一度だけ実行される<see cref="TimeAction"/>をスケジューラに追加します。
 		/// </summary>
-		/// <param name="action"></param>
-		/// <param name="execTime"></param>
+		/// <param name="action">実行されるデリゲート</param>
+		/// <param name="execTime"><paramref name="action"/>が実行される時刻</param>
 		/// <returns>スケジューラに追加された<see cref="TimeAction"/>インスタンス</returns>
 		public TimeAction Add(Action action, DateTime execTime)
 		{
@@ -214,11 +233,11 @@ namespace SwallowNest.Chidori
 
 		/// <summary>
 		/// 指定した時刻に実行され、
-		/// その後は一定間隔で繰り返し実行されるアクションをスケジューラに追加します。
+		/// その後は一定間隔で繰り返し実行される<see cref="TimeAction"/>をスケジューラに追加します。
 		/// </summary>
-		/// <param name="action"></param>
-		/// <param name="execTime">最初にアクションが実行される時刻</param>
-		/// <param name="interval">アクションが実行される間隔</param>
+		/// <param name="action">実行されるデリゲート</param>
+		/// <param name="execTime">最初に<paramref name="action"/>が実行される時刻</param>
+		/// <param name="interval"><paramref name="action"/>が実行される間隔</param>
 		/// <returns>スケジューラに追加された<see cref="TimeAction"/>インスタンス</returns>
 		public TimeAction Add(
 			Action action,
@@ -232,10 +251,10 @@ namespace SwallowNest.Chidori
 		}
 
 		/// <summary>
-		/// 一定間隔で繰り返し実行されるアクションをスケジューラに追加します。
+		/// 一定間隔で繰り返し実行される<see cref="TimeAction"/>をスケジューラに追加します。
 		/// </summary>
-		/// <param name="action"></param>
-		/// <param name="interval"></param>
+		/// <param name="action">実行されるデリゲート</param>
+		/// <param name="interval"><paramref name="action"/>が実行される間隔</param>
 		/// <returns>スケジューラに追加された<see cref="TimeAction"/>インスタンス</returns>
 		public TimeAction Add(Action action, TimeSpan interval)
 		{
@@ -245,7 +264,7 @@ namespace SwallowNest.Chidori
 		#endregion Add functions
 
 		/// <summary>
-		/// スケジューラが次にアクションを実行する時間を返します。
+		/// スケジューラが次に<see cref="TimeAction"/>を実行する時間を返します。
 		/// スケジューラが空の場合、<see cref="DateTime.MaxValue"/>を返します。
 		/// </summary>
 		public DateTime PeekTime
@@ -263,7 +282,7 @@ namespace SwallowNest.Chidori
 		#region Operations of scheduler status
 
 		/// <summary>
-		/// 登録されているアクションを順次実行します。
+		/// スケジューラを開始して、登録されているアクションを順次実行します。
 		/// </summary>
 		public Task Start()
 		{
