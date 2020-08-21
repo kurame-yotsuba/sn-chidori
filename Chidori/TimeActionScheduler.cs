@@ -13,8 +13,9 @@ namespace SwallowNest.Chidori
 		#region private member
 
 		// 実行待ちのアクションを格納する実行時刻をキーとする順序付き辞書
-		private readonly SortedDictionary<DateTime, Queue<TimeAction>> scheduler;
+		private readonly SortedDictionary<DateTime, LinkedList<TimeAction>> scheduler;
 
+		// スケジューラのタスク
 		private Task? execTask;
 
 		// スケジューラへのタスクの同時追加防止用
@@ -54,10 +55,11 @@ namespace SwallowNest.Chidori
 			{
 				Count--;
 
-				var (time, actionQueue) = scheduler.First();
+				var (time, list) = scheduler.First();
 
 				// 先頭のキューの先頭のタスクを取り出す。
-				var action = actionQueue.Dequeue();
+				TimeAction action = list.First.Value;
+				list.RemoveFirst();
 
 				// 先頭のキューの要素数が0なら削除
 				if (scheduler[time].Count == 0)
@@ -133,11 +135,11 @@ namespace SwallowNest.Chidori
 		#endregion private member
 
 		/// <summary>
-		/// コンストラクタ
+		/// <see cref="TimeAction"/>を管理するインスタンスを生成します。
 		/// </summary>
 		public TimeActionScheduler()
 		{
-			scheduler = new SortedDictionary<DateTime, Queue<TimeAction>>();
+			scheduler = new SortedDictionary<DateTime, LinkedList<TimeAction>>();
 		}
 
 		#region Collection functions
@@ -148,7 +150,7 @@ namespace SwallowNest.Chidori
 		public int Count { get; private set; }
 
 		/// <summary>
-		/// スケジューラに登録されているアクションを削除します。
+		/// スケジューラに登録されているアクションをすべて削除します。
 		/// </summary>
 		public void Clear()
 		{
@@ -181,14 +183,14 @@ namespace SwallowNest.Chidori
 				//指定の時間に既にタスクが入っている場合、そのタスクのあとに追加
 				if (scheduler.ContainsKey(time))
 				{
-					scheduler[time].Enqueue(timeAction);
+					scheduler[time].AddLast(timeAction);
 				}
 				//そうでない場合は新しくキューを作成して追加
 				else
 				{
-					var q = new Queue<TimeAction>();
-					q.Enqueue(timeAction);
-					scheduler[time] = q;
+					var list = new LinkedList<TimeAction>();
+					list.AddLast(timeAction);
+					scheduler[time] = list;
 				}
 
 				Count++;

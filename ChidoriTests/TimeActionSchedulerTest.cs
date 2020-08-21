@@ -19,7 +19,7 @@ namespace SwallowNest.Chidori.Tests
 		private TimeActionScheduler scheduler;
 
 		// schedulerの内部でTimeActionを管理するコレクション
-		private SortedDictionary<DateTime, Queue<TimeAction>> _scheduler;
+		private SortedDictionary<DateTime, LinkedList<TimeAction>> _scheduler;
 
 		private List<DateTime> output;
 
@@ -92,7 +92,7 @@ namespace SwallowNest.Chidori.Tests
 			_scheduler.Count.Is(1);
 			_scheduler.ContainsKey(timeAction.ExecTime).IsTrue();
 			_scheduler[timeAction.ExecTime].Count.Is(1);
-			_scheduler[timeAction.ExecTime].Peek().Is(timeAction);
+			_scheduler[timeAction.ExecTime].First.Value.Is(timeAction);
 		}
 
 		[TestMethod]
@@ -104,7 +104,7 @@ namespace SwallowNest.Chidori.Tests
 			_scheduler.Count.Is(1);
 			_scheduler.ContainsKey(timeAction.ExecTime).IsTrue();
 			_scheduler[timeAction.ExecTime].Count.Is(1);
-			_scheduler[timeAction.ExecTime].Peek().Is(timeAction);
+			_scheduler[timeAction.ExecTime].First.Value.Is(timeAction);
 		}
 
 		[TestMethod]
@@ -116,7 +116,7 @@ namespace SwallowNest.Chidori.Tests
 			_scheduler.Count.Is(1);
 			_scheduler.ContainsKey(timeAction.ExecTime).IsTrue();
 			_scheduler[timeAction.ExecTime].Count.Is(1);
-			_scheduler[timeAction.ExecTime].Peek().Is(timeAction);
+			_scheduler[timeAction.ExecTime].First.Value.Is(timeAction);
 		}
 
 		[TestMethod]
@@ -128,7 +128,7 @@ namespace SwallowNest.Chidori.Tests
 			_scheduler.Count.Is(1);
 			_scheduler.ContainsKey(timeAction.ExecTime).IsTrue();
 			_scheduler[timeAction.ExecTime].Count.Is(1);
-			_scheduler[timeAction.ExecTime].Peek().Is(timeAction);
+			_scheduler[timeAction.ExecTime].First.Value.Is(timeAction);
 		}
 
 		[TestMethod]
