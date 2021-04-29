@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SwallowNest.Chidori.Tests
+namespace SwallowNest.Shikibu.Tests
 {
 	[TestClass]
 	public class TimeActionSchedulerTest

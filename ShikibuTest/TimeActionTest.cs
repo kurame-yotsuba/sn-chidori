@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-namespace SwallowNest.Chidori.Tests
+namespace SwallowNest.Shikibu.Tests
 {
 	[TestClass]
 	public class TimeActionTest

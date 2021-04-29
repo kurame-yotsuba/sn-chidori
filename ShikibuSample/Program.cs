@@ -1,8 +1,8 @@
-﻿using SwallowNest.Chidori;
+﻿using SwallowNest.Shikibu;
 using System;
 using System.Threading.Tasks;
 
-namespace Chidori.Sample
+namespace SwallowNest.Shikibu.Sample
 {
     class Program
     {
@@ -18,10 +18,6 @@ namespace Chidori.Sample
 			var ta2 = sch.Add(() => Console.WriteLine("Hello"), TimeSpan.FromSeconds(5));
 
 			Task schTask = sch.Start();
-
-			Console.ReadLine();
-
-			ta2.ExecTime.AddSeconds(60);
 
 			Console.ReadLine();
 		}

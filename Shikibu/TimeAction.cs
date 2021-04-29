@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SwallowNest.Chidori
+namespace SwallowNest.Shikibu
 {
 	/// <summary>
 	/// <see cref="TimeActionScheduler"/>内で扱われるインスタンスです。

@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <RootNamespace>SwallowNest.Shikibu</RootNamespace>
+    <AssemblyName>SwallowNest.Shikibu</AssemblyName>
+    <Nullable>enable</Nullable>
+    <Version>0.2.0</Version>
+    <Authors>kurame</Authors>
+    <Product>Shikibu</Product>
+    <Description>Easy scheduler of Action delegate.</Description>
+    <PackageProjectUrl>https://github.com/kurame-yotsuba/shikibu</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kurame-yotsuba/shikibu</RepositoryUrl>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+</Project>

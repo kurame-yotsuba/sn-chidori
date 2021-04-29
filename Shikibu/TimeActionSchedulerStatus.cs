@@ -1,4 +1,4 @@
-﻿namespace SwallowNest.Chidori
+﻿namespace SwallowNest.Shikibu
 {
 	/// <summary>
 	/// TaskQueueの状態を表す列挙型です。

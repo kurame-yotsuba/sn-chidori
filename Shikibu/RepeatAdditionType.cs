@@ -1,4 +1,4 @@
-﻿namespace SwallowNest.Chidori
+﻿namespace SwallowNest.Shikibu
 {
 	/// <summary>
 	/// 繰り返しアクションを加える際のタイミングを表します。

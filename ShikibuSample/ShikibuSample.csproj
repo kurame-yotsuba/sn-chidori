@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>SwallowNest.Shikibu.Sample</AssemblyName>
+    <RootNamespace>SwallowNest.Shikibu.Sample</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shikibu\Shikibu.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31025.218
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chidori", "Chidori\Chidori.csproj", "{3C286AEA-FDA0-4CE1-8AA5-43F5D7E8BD38}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shikibu", "Shikibu\Shikibu.csproj", "{3C286AEA-FDA0-4CE1-8AA5-43F5D7E8BD38}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChidoriTests", "ChidoriTests\ChidoriTests.csproj", "{32E0022E-E2BB-44C3-81C7-CA1A99029142}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShikibuTest", "ShikibuTest\ShikibuTest.csproj", "{32E0022E-E2BB-44C3-81C7-CA1A99029142}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chidori.Sample", "Chidori.Sample\Chidori.Sample.csproj", "{D02BD786-12EA-4654-98AE-43DA03F7A397}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShikibuSample", "ShikibuSample\ShikibuSample.csproj", "{D02BD786-12EA-4654-98AE-43DA03F7A397}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

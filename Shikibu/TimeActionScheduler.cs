@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SwallowNest.Chidori
+namespace SwallowNest.Shikibu
 {
 	/// <summary>
 	/// 受け取ったタスクを時間順に実行していくクラスです。

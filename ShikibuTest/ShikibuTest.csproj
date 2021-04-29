@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
-    <RootNamespace>SwallowNest.Chidori.Tests</RootNamespace>
-    <AssemblyName>SwallowNest.ChidoriTests</AssemblyName>
+    <RootNamespace>SwallowNest.Shikibu.Tests</RootNamespace>
+    <AssemblyName>SwallowNest.Shikibu.Tests</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Chidori\Chidori.csproj" />
+    <ProjectReference Include="..\Shikibu\Shikibu.csproj" />
   </ItemGroup>
 
 </Project>

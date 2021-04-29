@@ -1,2 +1,2 @@
-# sn-chidori
+# shikibu
 .Net Core用タスクスケジューリングライブラリ
