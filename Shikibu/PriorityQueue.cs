@@ -16,7 +16,7 @@ namespace SwallowNest.Shikibu
         where TElement : notnull
         where TPriority : IComparable<TPriority>
     {
-        private static string EmptyErrorMessage = "キューの中身が空です。";
+        private static readonly string EmptyErrorMessage = "キューの中身が空です。";
 
         // 実行待ちのアクションを格納する実行時刻をキーとする順序付き辞書
         private readonly SortedDictionary<TPriority, LinkedList<TElement>> queue = new();
