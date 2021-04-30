@@ -16,7 +16,7 @@ namespace SwallowNest.Shikibu.Sample
 			var sch = new TimeActionScheduler();
 			var ta1 = sch.Add(() => Console.WriteLine(DateTime.Now), TimeSpan.FromSeconds(1));
 			var ta2 = sch.Add(() => Console.WriteLine("Hello"), TimeSpan.FromSeconds(5));
-
+			var ta3 = sch.Add(() => throw new Exception(), DateTime.Now.AddSeconds(30));
 			Task schTask = sch.Start();
 
 			Console.ReadLine();
