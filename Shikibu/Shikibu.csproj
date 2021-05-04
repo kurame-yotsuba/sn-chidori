@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>SwallowNest.Shikibu</RootNamespace>
     <AssemblyName>SwallowNest.Shikibu</AssemblyName>
-    <Version>0.4.0</Version>
+    <Version>0.5.0</Version>
     <Authors>kurame</Authors>
     <Product>Shikibu</Product>
     <Description>デリゲートを用いた簡易的なスケジューラ</Description>
