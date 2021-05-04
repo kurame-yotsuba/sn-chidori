@@ -43,7 +43,7 @@ namespace SwallowNest.Shikibu
 
         /// <summary>
         /// 繰り返しアクションを追加タイミングの種類です。
-        /// デフォルトは<see cref="RepeatAdditionType.BeforeExecute"/>です。
+        /// デフォルトは <see cref="RepeatAdditionType.BeforeExecute"/> です。
         /// </summary>
         public RepeatAdditionType AdditionType { get; set; }
 
@@ -72,33 +72,18 @@ namespace SwallowNest.Shikibu
         }
 
         /// <summary>
-        /// 指定された間隔で、アクションを繰り返し実行するためのインスタンスを生成します。
-        /// </summary>
-        /// <param name="onSchedule"></param>
-        /// <param name="interval"></param>
-        public TimeAction(
-            Func<ValueTask> onSchedule,
-            TimeSpan interval) : this(onSchedule)
-        {
-            // 繰り返し間隔が短すぎないかチェック
-            if (interval < MinimumInterval)
-            {
-                throw new ArgumentOutOfRangeException(nameof(interval), IntervalErrorMessage);
-            }
-
-            // 最初の実行時刻はinterval後
-            ExecTime = DateTime.Now + interval;
-            Interval = interval;
-        }
-
-        /// <summary>
         /// 指定された時刻から一定間隔で、
         /// アクションを繰り返し実行するためのインスタンスを生成します。
+        ///
+        /// <list type="bullet">
+        ///     <item>例外：<paramref name="interval"/> が <see cref="MinimumInterval"/> 未満</item>
+        /// </list>
+        ///
         /// </summary>
         /// <param name="onSchedule"></param>
         /// <param name="execTime">アクションが実行される時刻</param>
         /// <param name="interval">アクションの繰り返し間隔</param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="interval"/>が<see cref="MinimumInterval"/>未満</exception>
+        /// <exception cref="ArgumentOutOfRangeException"/>
         public TimeAction(
             Func<ValueTask> onSchedule,
             DateTime execTime,
@@ -112,6 +97,22 @@ namespace SwallowNest.Shikibu
 
             ExecTime = execTime;
             Interval = interval;
+        }
+
+        /// <summary>
+        /// 指定された間隔で、アクションを繰り返し実行するためのインスタンスを生成します。
+        ///
+        /// <list type="bullet">
+        ///     <item>例外：<paramref name="interval"/> が <see cref="MinimumInterval"/> 未満</item>
+        /// </list>
+        /// </summary>
+        /// <param name="onSchedule"></param>
+        /// <param name="interval">アクションの繰り返し間隔</param>
+        /// <exception cref="ArgumentOutOfRangeException"/>
+        public TimeAction(
+            Func<ValueTask> onSchedule,
+            TimeSpan interval) : this(onSchedule, DateTime.Now + interval, interval)
+        {
         }
 
         #region Action から Func<ValueTask> へのコンストラクタ
@@ -139,10 +140,14 @@ namespace SwallowNest.Shikibu
 
         /// <summary>
         /// 指定された間隔で、アクションを繰り返し実行するためのインスタンスを生成します。
+        ///
+        /// <list type="bullet">
+        ///     <item>例外：<paramref name="interval"/> が <see cref="MinimumInterval"/> 未満</item>
+        /// </list>
         /// </summary>
         /// <param name="onSchedule"></param>
-        /// <param name="interval">アクションの繰り返し間隔（<see cref="MinimumInterval"/>以上）</param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="interval"/>が<see cref="MinimumInterval"/>未満</exception>
+        /// <param name="interval">アクションの繰り返し間隔</param>
+        /// <exception cref="ArgumentOutOfRangeException"/>
         public TimeAction(
             Action onSchedule,
             TimeSpan interval) : this(async () => onSchedule(), interval)
@@ -152,10 +157,16 @@ namespace SwallowNest.Shikibu
         /// <summary>
         /// 指定された時刻から一定間隔で、
         /// アクションを繰り返し実行するためのインスタンスを生成します。
+        ///
+        /// <list type="bullet">
+        ///     <item>例外：<paramref name="interval"/> が <see cref="MinimumInterval"/> 未満</item>
+        /// </list>
+        ///
         /// </summary>
         /// <param name="onSchedule"></param>
-        /// <param name="execTime"></param>
-        /// <param name="interval"></param>
+        /// <param name="execTime">アクションが実行される時刻</param>
+        /// <param name="interval">アクションの繰り返し間隔</param>
+        /// <exception cref="ArgumentOutOfRangeException"/>
         public TimeAction(
             Action onSchedule,
             DateTime execTime,
@@ -169,6 +180,10 @@ namespace SwallowNest.Shikibu
 
         #endregion constructor
 
+        /// <summary>
+        /// 実行条件を満たす場合にアクションを実行します。
+        /// </summary>
+        /// <returns></returns>
         internal async ValueTask Invoke()
         {
             if (CanExecute?.Invoke() ?? true)

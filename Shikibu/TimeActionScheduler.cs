@@ -130,6 +130,9 @@ namespace SwallowNest.Shikibu
 
         #region Collection functions
 
+        /// <summary>
+        /// アクション実行時に投げられるエラーのハンドラ
+        /// </summary>
         public event Action<Exception>? OnError;
 
         /// <summary>
@@ -170,11 +173,11 @@ namespace SwallowNest.Shikibu
         }
 
         /// <summary>
-        /// 指定した時刻に一度だけ実行される<see cref="TimeAction"/>をスケジューラに追加します。
+        /// 指定した時刻に一度だけ実行される <see cref="TimeAction"/> をスケジューラに追加します。
         /// </summary>
         /// <param name="action">実行されるデリゲート</param>
-        /// <param name="execTime"><paramref name="action"/>が実行される時刻</param>
-        /// <returns>スケジューラに追加された<see cref="TimeAction"/>インスタンス</returns>
+        /// <param name="execTime"><paramref name="action"/> が実行される時刻</param>
+        /// <returns>スケジューラに追加された <see cref="TimeAction"/> インスタンス</returns>
         public TimeAction Add(Action action, DateTime execTime)
         {
             TimeAction timeAction = new TimeAction(action, execTime);
@@ -186,12 +189,12 @@ namespace SwallowNest.Shikibu
 
         /// <summary>
         /// 指定した時刻に実行され、
-        /// その後は一定間隔で繰り返し実行される<see cref="TimeAction"/>をスケジューラに追加します。
+        /// その後は一定間隔で繰り返し実行される <see cref="TimeAction"/> をスケジューラに追加します。
         /// </summary>
         /// <param name="action">実行されるデリゲート</param>
-        /// <param name="execTime">最初に<paramref name="action"/>が実行される時刻</param>
-        /// <param name="interval"><paramref name="action"/>が実行される間隔</param>
-        /// <returns>スケジューラに追加された<see cref="TimeAction"/>インスタンス</returns>
+        /// <param name="execTime">最初に <paramref name="action"/> が実行される時刻</param>
+        /// <param name="interval"><paramref name="action"/> が実行される間隔</param>
+        /// <returns>スケジューラに追加された <see cref="TimeAction"/> インスタンス</returns>
         public TimeAction Add(
             Action action,
             DateTime execTime,
@@ -204,11 +207,11 @@ namespace SwallowNest.Shikibu
         }
 
         /// <summary>
-        /// 一定間隔で繰り返し実行される<see cref="TimeAction"/>をスケジューラに追加します。
+        /// 一定間隔で繰り返し実行される <see cref="TimeAction"/> をスケジューラに追加します。
         /// </summary>
         /// <param name="action">実行されるデリゲート</param>
-        /// <param name="interval"><paramref name="action"/>が実行される間隔</param>
-        /// <returns>スケジューラに追加された<see cref="TimeAction"/>インスタンス</returns>
+        /// <param name="interval"><paramref name="action"/> が実行される間隔</param>
+        /// <returns>スケジューラに追加された <see cref="TimeAction"/> インスタンス</returns>
         public TimeAction Add(Action action, TimeSpan interval)
         {
             return Add(action, DateTime.Now + interval, interval);
@@ -217,8 +220,8 @@ namespace SwallowNest.Shikibu
         #endregion Add functions
 
         /// <summary>
-        /// スケジューラが次に<see cref="TimeAction"/>を実行する時間を返します。
-        /// スケジューラが空の場合、<see cref="DateTime.MaxValue"/>を返します。
+        /// スケジューラが次に <see cref="TimeAction"/> を実行する時間を返します。
+        /// スケジューラが空の場合、<see cref="DateTime.MaxValue"/> を返します。
         /// </summary>
         public DateTime TimePeek
         {
