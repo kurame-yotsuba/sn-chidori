@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace SwallowNest.Shikibu
 {
@@ -39,7 +38,6 @@ namespace SwallowNest.Shikibu
                 list = new LinkedList<TElement>();
                 list.AddLast(element);
                 queue[priority] = list;
-
             }
 
             Count++;
@@ -48,22 +46,37 @@ namespace SwallowNest.Shikibu
         /// <summary>
         /// 最も優先度の高い要素を取り出す。
         /// 優先度が同一の要素は追加された順に取り出される。
+        ///
+        /// <list type="bullet">
+        ///     <item>例外：キューが空</item>
+        /// </list>
         /// </summary>
         /// <returns></returns>
+        /// <exception cref="InvalidOperationException"/>
         public TElement Dequeue()
         {
-            var (time, list) = queue.First();
+            TPriority priority;
+            LinkedList<TElement> list;
+            try
+            {
+                (priority, list) = queue.First();
+            }
+            catch (InvalidOperationException)
+            {
+                throw new InvalidOperationException(EmptyErrorMessage);
+            }
 
-            // 先頭のキューの先頭の要素を取り出す。
-            TElement element = list.First.Value;
+            // キューの先頭のリストの先頭の要素を取り出す
+            // リストには必ず要素が入っている
+            TElement element = list.First!.Value;
             list.RemoveFirst();
 
             // 先頭のキューの要素数が0なら削除
             if (list.Count == 0)
             {
-                queue.Remove(time);
+                queue.Remove(priority);
             }
-            
+
             Count--;
 
             return element;
@@ -76,39 +89,52 @@ namespace SwallowNest.Shikibu
 
         /// <summary>
         /// 次の <see cref="Dequeue"/> 時に取り出される要素の優先度を返す。
-        /// 要素数が 0 の時、例外を投げる。
+        ///
+        /// <list type="bullet">
+        ///     <item>例外：キューが空</item>
+        /// </list>
         /// </summary>
         /// <exception cref="InvalidOperationException"/>
         public TPriority PriorityPeek()
         {
+            TPriority priority;
             try
             {
-                var (priority, _) = queue.First();
-                return priority;
+                (priority, _) = queue.First();
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
-                throw new InvalidOperationException(EmptyErrorMessage, e);
+                throw new InvalidOperationException(EmptyErrorMessage);
             }
+
+            return priority;
         }
 
         /// <summary>
         /// 次の <see cref="Dequeue"/> 時に取り出される要素を返す。
-        /// 要素数が 0 の時、例外を投げる。
+        ///
+        /// <list type="bullet">
+        ///     <item>例外：キューが空</item>
+        /// </list>
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"/>
         public TElement Peek()
         {
+            LinkedList<TElement> list;
+
             try
             {
-                var element = queue.First().Value.First.Value;
-                return element;
+                (_, list) = queue.First();
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
-                throw new InvalidOperationException(EmptyErrorMessage, e);
+                throw new InvalidOperationException(EmptyErrorMessage);
             }
+
+            // リストが存在すればリスト内には要素が必ず存在する
+            TElement element = list.First!.Value;
+            return element;
         }
 
         /// <summary>
@@ -126,7 +152,7 @@ namespace SwallowNest.Shikibu
             }
 
             // 先頭のキューの先頭の要素を取り出す。
-            TElement element = list.First.Value;
+            TElement element = list.First!.Value;
             list.RemoveFirst();
 
             // 先頭のキューの要素数が0なら削除
@@ -149,13 +175,13 @@ namespace SwallowNest.Shikibu
         public bool TryPeek([NotNullWhen(true)] out TElement? result)
         {
             var (_, list) = queue.FirstOrDefault();
-            if(list is null)
+            if (list is null)
             {
                 result = default;
                 return false;
             }
 
-            result = list.First.Value;
+            result = list.First!.Value;
             return true;
         }
 
@@ -167,7 +193,7 @@ namespace SwallowNest.Shikibu
         public bool TryPriorityPeek([NotNullWhen(true)] out TPriority? result)
         {
             var (priority, list) = queue.FirstOrDefault();
-            if(list is null)
+            if (list is null)
             {
                 result = default;
                 return false;
@@ -205,6 +231,6 @@ namespace SwallowNest.Shikibu
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        #endregion
+        #endregion Implements of IEnumerable
     }
 }

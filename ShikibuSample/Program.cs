@@ -1,41 +1,43 @@
-﻿using SwallowNest.Shikibu;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace SwallowNest.Shikibu.Sample
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-			Sample();
+            Sample();
         }
 
-		public static void Sample()
-		{
-			var sch = new TimeActionScheduler();
-			var ta1 = sch.Add(() => Console.WriteLine(DateTime.Now), TimeSpan.FromSeconds(1));
-			var ta2 = sch.Add(() => Console.WriteLine("Hello"), TimeSpan.FromSeconds(5));
-			var ta3 = sch.Add(() => throw new Exception(), DateTime.Now.AddSeconds(30));
-			Task schTask = sch.Start();
+        public static void Sample()
+        {
+            var sch = new TimeActionScheduler();
+            var ta1 = sch.Add(() => Console.WriteLine(DateTime.Now), TimeSpan.FromSeconds(1));
+            var ta2 = sch.Add(() => Console.WriteLine("Hello"), TimeSpan.FromSeconds(5));
+            var ta3 = sch.Add(() => throw new Exception(), DateTime.Now.AddSeconds(30));
+            Task schTask = sch.Start();
 
-			Console.ReadLine();
-		}
+            Console.ReadLine();
+        }
 
-		public static void Alert()
-		{
-			var sch = new TimeActionScheduler();
-			var ta = sch.Add(() =>
-			{
-				Console.Beep();
-				Console.WriteLine("キーを入力してください。");
-				string key = Console.ReadLine();
-				Console.WriteLine($"{key}が入力されました。");
-				if (key == "q") { sch.EndImmediately(); }
-			}, TimeSpan.FromMinutes(20));
-			ta.AdditionType = RepeatAdditionType.AfterExecute;
+        public static void Alert()
+        {
+            var scheduler = new TimeActionScheduler();
+            TimeAction timeAction = new(() =>
+            {
+                Console.Beep();
+                Console.WriteLine("キーを入力してください。");
+                string key = Console.ReadLine();
+                Console.WriteLine($"{key}が入力されました。");
+                if (key == "q") { scheduler.EndImmediately(); }
+            }, TimeSpan.FromMinutes(20))
+            {
+                AdditionType = RepeatAdditionType.AfterExecute,
+            };
+            scheduler.Add(timeAction);
 
-			sch.Start().Wait();
-		}
-	}
+            scheduler.Start().Wait();
+        }
+    }
 }

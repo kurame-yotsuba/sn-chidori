@@ -45,7 +45,7 @@ namespace SwallowNest.Shikibu
         /// 繰り返しアクションを追加タイミングの種類です。
         /// デフォルトは <see cref="RepeatAdditionType.BeforeExecute"/> です。
         /// </summary>
-        public RepeatAdditionType AdditionType { get; set; }
+        public RepeatAdditionType AdditionType { get; init; }
 
         #region constructor
 
