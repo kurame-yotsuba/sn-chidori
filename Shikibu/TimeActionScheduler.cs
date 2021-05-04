@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SwallowNest.Shikibu
@@ -6,7 +8,7 @@ namespace SwallowNest.Shikibu
     /// <summary>
     /// 受け取ったタスクを時間順に実行していくクラスです。
     /// </summary>
-    public class TimeActionScheduler
+    public class TimeActionScheduler : IEnumerable<TimeAction>
     {
         #region private member
 
@@ -292,5 +294,23 @@ namespace SwallowNest.Shikibu
         }
 
         #endregion Operations of scheduler status
+
+        #region Implements of IEnumerable
+
+        /// <summary>
+        /// スケジューラに登録されている <see cref="TimeAction"/> を列挙する
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerator<TimeAction> GetEnumerator()
+        {
+            foreach (var (element, _) in scheduler)
+            {
+                yield return element;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        #endregion Implements of IEnumerable
     }
 }
