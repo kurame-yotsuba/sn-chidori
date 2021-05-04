@@ -66,9 +66,9 @@ namespace SwallowNest.Shikibu
         }
 
         // アクションを実行する関数
-        private void Invoke(TimeAction timeAction)
+        private async ValueTask Invoke(TimeAction timeAction)
         {
-            if (Execution) { timeAction.Invoke(); }
+            if (Execution) { await timeAction.Invoke(); }
         }
 
         private async Task CreateExecTask()
@@ -89,11 +89,11 @@ namespace SwallowNest.Shikibu
                         // 実行前に追加する場合
                         case RepeatAdditionType.BeforeExecute:
                             Append(timeAction, timeAction.ExecTime + timeAction.Interval);
-                            Invoke(timeAction);
+                            await Invoke(timeAction);
                             break;
                         // 実行後に追加する場合
                         case RepeatAdditionType.AfterExecute:
-                            Invoke(timeAction);
+                            await Invoke (timeAction);
                             Append(timeAction, DateTime.Now + timeAction.Interval);
                             break;
                     }

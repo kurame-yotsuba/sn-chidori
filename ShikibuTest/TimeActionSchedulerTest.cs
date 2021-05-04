@@ -334,7 +334,7 @@ namespace SwallowNest.Shikibu.Tests
             // アクションが終了するのに3秒以上かかる
             // outputに出力されるのは5秒後と8秒後
             TimeAction timeAction = new TimeAction(
-                () => { Wait(3).Wait(); OutputNow(); },
+                async () => { await Wait(3); OutputNow(); },
                 TimeSpan.FromSeconds(2))
             {
                 // アクション実行前にスケジューラに繰り返しアクションを追加するオプション
@@ -363,7 +363,7 @@ namespace SwallowNest.Shikibu.Tests
             // アクションが終了するのに3秒以上かかる
             // outputに出力されるのは5秒後と10秒後
             TimeAction timeAction = new(
-                 () => { Wait(3).Wait(); OutputNow(); },
+                async () => { await Task.Delay(3000); OutputNow(); },
                 TimeSpan.FromSeconds(2))
             {
                 // アクション実行後にスケジューラに繰り返しアクションを追加するオプション

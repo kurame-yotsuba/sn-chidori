@@ -20,7 +20,7 @@ namespace SwallowNest.Shikibu.Tests
 		// イベントを無理矢理実行する用
 		private static void InvokeOnSchedule(TimeAction timeAction)
 		{
-			timeAction.AsDynamic().OnSchedule.Invoke();
+			timeAction.AsDynamic().onSchedule.Invoke();
 		}
 
 		// TimeActionを無理矢理実行する用
