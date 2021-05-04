@@ -25,6 +25,11 @@ namespace SwallowNest.Shikibu
         private readonly Func<ValueTask> onSchedule;
 
         /// <summary>
+        /// アクションの名前。
+        /// </summary>
+        public string Name { get; init; }
+
+        /// <summary>
         /// アクションが実行される時刻です。
         /// </summary>
         public DateTime ExecTime { get; internal set; }
@@ -56,6 +61,7 @@ namespace SwallowNest.Shikibu
         protected TimeAction(Func<ValueTask> onSchedule)
         {
             this.onSchedule = onSchedule;
+            Name = "";
             AdditionType = RepeatAdditionType.BeforeExecute;
         }
 

@@ -177,10 +177,14 @@ namespace SwallowNest.Shikibu
         /// </summary>
         /// <param name="action">実行されるデリゲート</param>
         /// <param name="execTime"><paramref name="action"/> が実行される時刻</param>
+        /// <param name="name">アクションの表示名</param>
         /// <returns>スケジューラに追加された <see cref="TimeAction"/> インスタンス</returns>
-        public TimeAction Add(Action action, DateTime execTime)
+        public TimeAction Add(Action action, DateTime execTime, string name = "")
         {
-            TimeAction timeAction = new TimeAction(action, execTime);
+            TimeAction timeAction = new(action, execTime)
+            {
+                Name = name
+            };
 
             Add(timeAction);
 
@@ -194,13 +198,18 @@ namespace SwallowNest.Shikibu
         /// <param name="action">実行されるデリゲート</param>
         /// <param name="execTime">最初に <paramref name="action"/> が実行される時刻</param>
         /// <param name="interval"><paramref name="action"/> が実行される間隔</param>
+        /// <param name="name">アクションの表示名</param>
         /// <returns>スケジューラに追加された <see cref="TimeAction"/> インスタンス</returns>
         public TimeAction Add(
             Action action,
             DateTime execTime,
-            TimeSpan interval)
+            TimeSpan interval,
+            string name = "")
         {
-            TimeAction timeAction = new TimeAction(action, execTime, interval);
+            TimeAction timeAction = new(action, execTime, interval)
+            {
+                Name = name
+            };
             Add(timeAction);
 
             return timeAction;
@@ -211,10 +220,11 @@ namespace SwallowNest.Shikibu
         /// </summary>
         /// <param name="action">実行されるデリゲート</param>
         /// <param name="interval"><paramref name="action"/> が実行される間隔</param>
+        /// <param name="name">アクションの表示名</param>
         /// <returns>スケジューラに追加された <see cref="TimeAction"/> インスタンス</returns>
-        public TimeAction Add(Action action, TimeSpan interval)
+        public TimeAction Add(Action action, TimeSpan interval, string name = "")
         {
-            return Add(action, DateTime.Now + interval, interval);
+            return Add(action, DateTime.Now + interval, interval, name);
         }
 
         #endregion Add functions
