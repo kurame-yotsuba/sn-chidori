@@ -1,139 +1,145 @@
-﻿using Microsoft.VisualStudio.TestPlatform.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using static SwallowNest.Shikibu.Tests.Helpers.Category;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SwallowNest.Shikibu.Tests.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using SwallowNest.Shikibu.Tests.Helpers;
+using static SwallowNest.Shikibu.Tests.Helpers.Category;
 
 namespace SwallowNest.Shikibu.Tests
 {
-	[TestClass]
-	public class TimeActionTest
-	{
-		private static readonly TimeSpan delta = TimeSpan.FromSeconds(0.5);
-		private List<DateTime> output;
-		private DateTime now;
+    [TestClass]
+    public class TimeActionTest
+    {
+        #region TestCategory
 
-		// 現在時刻を保存する
-		private void OutputNow() => output.Add(DateTime.Now);
+        public const string Invoke = "アクション実行";
 
-		[TestInitialize]
-		public void TestInit()
-		{
-			output = new List<DateTime>();
-			now = DateTime.Now;
-		}
+        #endregion TestCategory
 
-		[TestMethod]
-		[TestCategory(Constructor)]
-		[TestCategory(Normal)]
-		public async Task 時刻指定()
-		{
-			TimeAction timeAction = new(OutputNow, now);
+        private static readonly TimeSpan delta = TimeSpan.FromSeconds(0.5);
+        private List<DateTime> output;
+        private DateTime now;
 
-			// アクションの実行
-			await timeAction.Invoke();
+        // 現在時刻を保存する
+        private void OutputNow() => output.Add(DateTime.Now);
 
-			output.Count.Is(1, "アクションが１回実行されている");
-			timeAction.ExecTime.Is(now, "実行時間が設定されている");
-			timeAction.Interval.Is(default(TimeSpan), "指定しない場合はデフォルト値");
-			timeAction.AdditionType.Is(RepeatAdditionType.BeforeExecute,
-				$"指定しない場合は{RepeatAdditionType.BeforeExecute}");
-		}
+        [TestInitialize]
+        public void TestInit()
+        {
+            output = new List<DateTime>();
+            now = DateTime.Now;
+        }
 
-		[TestMethod]
-		[TestCategory(Constructor)]
-		[TestCategory(Normal)]
-		public async Task 間隔指定()
-		{
-			TimeSpan interval = TimeSpan.FromSeconds(1);
-			TimeAction timeAction = new(OutputNow, interval);
+        [TestMethod]
+        [TestCategory(Constructor)]
+        [TestCategory(Normal)]
+        public async Task 時刻指定()
+        {
+            TimeAction timeAction = new(OutputNow, now);
 
-			// アクションの実行
-			await timeAction.Invoke();
+            // アクションの実行
+            await timeAction.Invoke();
 
-			output.Count.Is(1, "アクションが１回実行されている");
+            output.Count.Is(1, "アクションが１回実行されている");
+            timeAction.ExecTime.Is(now, "実行時間が設定されている");
+            timeAction.Interval.Is(default(TimeSpan), "指定しない場合はデフォルト値");
+            timeAction.AdditionType.Is(RepeatAdditionType.BeforeExecute,
+                $"指定しない場合は{RepeatAdditionType.BeforeExecute}");
+        }
 
-			(timeAction.ExecTime - (now + interval)).WithIn(delta,
-				$"Addした時刻から{interval}足した時刻に設定されている");
+        [TestMethod]
+        [TestCategory(Constructor)]
+        [TestCategory(Normal)]
+        public async Task 間隔指定()
+        {
+            TimeSpan interval = TimeSpan.FromSeconds(1);
+            TimeAction timeAction = new(OutputNow, interval);
 
-			timeAction.Interval.Is(interval, "時間間隔が設定されている");
-			timeAction.AdditionType.Is(RepeatAdditionType.BeforeExecute,
-				$"指定しない場合は{RepeatAdditionType.BeforeExecute}");
-		}
+            // アクションの実行
+            await timeAction.Invoke();
 
-		[TestMethod]
-		[TestCategory(Constructor)]
-		[TestCategory(Normal)]
-		public async Task 時刻と間隔指定()
-		{
-			TimeSpan interval = TimeSpan.FromSeconds(1);
-			TimeAction timeAction = new(OutputNow, now, interval);
+            output.Count.Is(1, "アクションが１回実行されている");
 
-			// アクションの実行
-			await timeAction.Invoke();
+            (timeAction.ExecTime - (now + interval)).WithIn(delta,
+                $"Addした時刻から{interval}足した時刻に設定されている");
 
-			output.Count.Is(1, "アクションが１回実行されている");
-			timeAction.ExecTime.Is(now, "指定した時刻が設定されている");
-			timeAction.Interval.Is(interval, "指定した時間間隔が設定されている");
-			timeAction.AdditionType.Is(RepeatAdditionType.BeforeExecute,
-				$"指定しない場合は{RepeatAdditionType.BeforeExecute}");
-		}
+            timeAction.Interval.Is(interval, "時間間隔が設定されている");
+            timeAction.AdditionType.Is(RepeatAdditionType.BeforeExecute,
+                $"指定しない場合は{RepeatAdditionType.BeforeExecute}");
+        }
 
-		[TestMethod]
-		[TestCategory(Constructor)]
-		[TestCategory(Error)]
-		public void 間隔短すぎ()
-		{
-			TimeSpan interval = TimeSpan.FromSeconds(0.5);
+        [TestMethod]
+        [TestCategory(Constructor)]
+        [TestCategory(Normal)]
+        public async Task 時刻と間隔指定()
+        {
+            TimeSpan interval = TimeSpan.FromSeconds(1);
+            TimeAction timeAction = new(OutputNow, now, interval);
 
-			// 間隔のみ指定
-			AssertEx.Throws<ArgumentOutOfRangeException>(() =>
-			{
-				TimeAction timeAction = new(OutputNow, interval);
-			}, $"時間間隔は{TimeAction.MinimumInterval}以上でなければならない");
+            // アクションの実行
+            await timeAction.Invoke();
 
-			// 時刻と間隔指定
-			AssertEx.Throws<ArgumentOutOfRangeException>(() =>
-			{
-				TimeAction timeAction = new(OutputNow, now, interval);
-			}, $"時間間隔は{TimeAction.MinimumInterval}以上でなければならない");
-		}
+            output.Count.Is(1, "アクションが１回実行されている");
+            timeAction.ExecTime.Is(now, "指定した時刻が設定されている");
+            timeAction.Interval.Is(interval, "指定した時間間隔が設定されている");
+            timeAction.AdditionType.Is(RepeatAdditionType.BeforeExecute,
+                $"指定しない場合は{RepeatAdditionType.BeforeExecute}");
+        }
 
-		[TestMethod]
-		[TestCategory(Normal)]
-		public async Task Invoke_CanExecuteIsNull()
-		{
-			TimeAction timeAction = new(OutputNow, now);
-			await timeAction.Invoke();
+        [TestMethod]
+        [TestCategory(Constructor)]
+        [TestCategory(Error)]
+        public void 間隔短すぎ()
+        {
+            TimeSpan interval = TimeSpan.FromSeconds(0.5);
 
-			output.Count.Is(1, "nullの場合は実行する");
-		}
+            // 間隔のみ指定
+            AssertEx.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                TimeAction timeAction = new(OutputNow, interval);
+            }, $"時間間隔は{TimeAction.MinimumInterval}以上でなければならない");
 
-		[TestMethod]
-		[TestCategory(Normal)]
-		public async Task Invoke_CanExecuteIsTrue()
-		{
-			TimeAction timeAction = new(OutputNow, now);
-			timeAction.CanExecute += () => true;
+            // 時刻と間隔指定
+            AssertEx.Throws<ArgumentOutOfRangeException>(() =>
+            {
+                TimeAction timeAction = new(OutputNow, now, interval);
+            }, $"時間間隔は{TimeAction.MinimumInterval}以上でなければならない");
+        }
 
-			await timeAction.Invoke();
-			output.Count.Is(1, "戻り値がtrueの場合は実行する");
-		}
+        [TestMethod]
+        [TestCategory(Invoke)]
+        [TestCategory(Normal)]
+        public async Task CanExecuteがnull()
+        {
+            TimeAction timeAction = new(OutputNow, now);
+            await timeAction.Invoke();
 
-		[TestMethod]
-		[TestCategory(Normal)]
-		public async Task Invoke_CanExecuteIsFalse()
-		{
-			TimeAction timeAction = new(OutputNow, now);
-			timeAction.CanExecute += () => false;
+            output.Count.Is(1, "nullの場合は実行する");
+        }
 
-			// OnScheduleイベントは実行されない
-			await timeAction.Invoke();
-			output.Count.Is(0, "戻り値がfalseの場合は実行しない");
-		}
-	}
+        [TestMethod]
+        [TestCategory(Invoke)]
+        [TestCategory(Normal)]
+        public async Task CanExecuteがtrue()
+        {
+            TimeAction timeAction = new(OutputNow, now);
+            timeAction.CanExecute += () => true;
+
+            await timeAction.Invoke();
+            output.Count.Is(1, "戻り値がtrueの場合は実行する");
+        }
+
+        [TestMethod]
+        [TestCategory(Invoke)]
+        [TestCategory(Normal)]
+        public async Task CanExecuteがfalse()
+        {
+            TimeAction timeAction = new(OutputNow, now);
+            timeAction.CanExecute += () => false;
+
+            // OnScheduleイベントは実行されない
+            await timeAction.Invoke();
+            output.Count.Is(0, "戻り値がfalseの場合は実行しない");
+        }
+    }
 }
