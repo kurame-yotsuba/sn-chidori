@@ -15,7 +15,7 @@ namespace SwallowNest.Shikibu
         /// </summary>
         public static readonly TimeSpan MinimumInterval = TimeSpan.FromSeconds(1);
 
-        private static readonly string intervalMinimumErrorMessage = $"時間間隔は{MinimumInterval.TotalSeconds}秒以上でなければなりません。";
+        private static readonly string IntervalErrorMessage = $"時間間隔は{MinimumInterval.TotalSeconds}秒以上でなければなりません。";
 
         #endregion static member
 
@@ -33,7 +33,7 @@ namespace SwallowNest.Shikibu
         /// アクションの繰り返し間隔です。
         /// <see cref="MinimumInterval"/>以上の値を取ります。
         /// </summary>
-        public TimeSpan Interval { get; private set; }
+        public TimeSpan Interval { get; }
 
         /// <summary>
         /// アクションの実行条件です。
@@ -83,7 +83,7 @@ namespace SwallowNest.Shikibu
             // 繰り返し間隔が短すぎないかチェック
             if (interval < MinimumInterval)
             {
-                throw new ArgumentOutOfRangeException(nameof(interval), intervalMinimumErrorMessage);
+                throw new ArgumentOutOfRangeException(nameof(interval), IntervalErrorMessage);
             }
 
             // 最初の実行時刻はinterval後
@@ -107,7 +107,7 @@ namespace SwallowNest.Shikibu
             // 繰り返し間隔が短すぎないかチェック
             if (interval < MinimumInterval)
             {
-                throw new ArgumentOutOfRangeException(nameof(interval), intervalMinimumErrorMessage);
+                throw new ArgumentOutOfRangeException(nameof(interval), IntervalErrorMessage);
             }
 
             ExecTime = execTime;
