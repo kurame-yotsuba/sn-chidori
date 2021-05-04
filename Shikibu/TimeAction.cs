@@ -33,7 +33,7 @@ namespace SwallowNest.Shikibu
         /// アクションの繰り返し間隔です。
         /// <see cref="MinimumInterval"/>以上の値を取ります。
         /// </summary>
-        public TimeSpan Interval { get; internal set; }
+        public TimeSpan Interval { get; private set; }
 
         /// <summary>
         /// アクションの実行条件です。
@@ -174,7 +174,6 @@ namespace SwallowNest.Shikibu
             if (CanExecute?.Invoke() ?? true)
             {
                 await onSchedule();
-                //OnSchedule();
             }
         }
     }

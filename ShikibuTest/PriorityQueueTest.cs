@@ -16,7 +16,7 @@ namespace SwallowNest.Shikibu.Tests
         (string element, int priority)[] dequeueList;
 
         [TestInitialize]
-        public void Initialize()
+        public void TestInit()
         {
             queue = new();
             // キューに追加する要素と優先度

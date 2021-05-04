@@ -10,5 +10,7 @@ namespace SwallowNest.Shikibu.Tests.Helpers
     {
         public const string Normal = "正常系";
         public const string Error = "異常系";
+
+        public const string Constructor = "コンストラクタ";
     }
 }
