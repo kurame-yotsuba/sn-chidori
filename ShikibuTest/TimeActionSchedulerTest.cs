@@ -408,5 +408,24 @@ namespace SwallowNest.Shikibu.Tests
 
             scheduler.TimePeek.Is(time);
         }
+
+        [TestMethod]
+        [TestCategory(Normal)]
+        public async Task アクション中に例外発生()
+        {
+            string errorMessage = null;
+            Exception exception = new("error");
+
+            // 例外のハンドリングの設定
+            scheduler.OnError += e => errorMessage = e.Message;
+
+            // 例外を投げるアクションの設定
+            scheduler.Add(() => throw exception, DateTime.Now.AddSeconds(1));
+
+            _ = scheduler.Start();
+            await Wait(1);
+
+            errorMessage.Is(exception.Message);
+        }
     }
 }

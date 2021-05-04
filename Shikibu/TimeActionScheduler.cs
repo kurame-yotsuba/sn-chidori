@@ -68,7 +68,17 @@ namespace SwallowNest.Shikibu
         // アクションを実行する関数
         private async ValueTask Invoke(TimeAction timeAction)
         {
-            if (Execution) { await timeAction.Invoke(); }
+            if (Execution)
+            {
+                try
+                {
+                    await timeAction.Invoke();
+                }
+                catch (Exception e)
+                {
+                    OnError?.Invoke(e);
+                }
+            }
         }
 
         private async Task CreateExecTask()
@@ -93,7 +103,7 @@ namespace SwallowNest.Shikibu
                             break;
                         // 実行後に追加する場合
                         case RepeatAdditionType.AfterExecute:
-                            await Invoke (timeAction);
+                            await Invoke(timeAction);
                             Append(timeAction, DateTime.Now + timeAction.Interval);
                             break;
                     }
@@ -119,6 +129,8 @@ namespace SwallowNest.Shikibu
         #endregion private member
 
         #region Collection functions
+
+        public event Action<Exception>? OnError;
 
         /// <summary>
         /// スケジューラに登録されているタスクの個数です。
