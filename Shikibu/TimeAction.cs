@@ -149,6 +149,13 @@ namespace SwallowNest.Shikibu
         {
         }
 
+        /// <summary>
+        /// 指定された時刻から一定間隔で、
+        /// アクションを繰り返し実行するためのインスタンスを生成します。
+        /// </summary>
+        /// <param name="onSchedule"></param>
+        /// <param name="execTime"></param>
+        /// <param name="interval"></param>
         public TimeAction(
             Action onSchedule,
             DateTime execTime,
