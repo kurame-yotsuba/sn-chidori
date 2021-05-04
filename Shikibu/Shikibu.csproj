@@ -13,5 +13,6 @@
     <PackageProjectUrl>https://github.com/kurame-yotsuba/shikibu</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kurame-yotsuba/shikibu</RepositoryUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Copyright>Copyright © 2021</Copyright>
   </PropertyGroup>
 </Project>
